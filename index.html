@@ -991,6 +991,25 @@ function docCOVER(t,c){
   </div>`;
 }
 
+/* Service Book certificate items 9 & 10: same Yes/No logic as the HOI declarations (Court Case / Loan) */
+function sbCaseCertText(t,c){
+  const g=t.gender;
+  const retired = !!(c.dor && new Date()>c.dor);
+  const anyYes = [t.declCasePending,t.declPostLitigation,t.declClaimMatter].some(v=>String(v||"").toUpperCase()==="YES");
+  const unset = [t.declCasePending,t.declPostLitigation,t.declClaimMatter].some(v=>!v);
+  return `<strong>Regarding pendency of Court Case / Litigation:</strong> (i) ${declYN(t.declCasePending,"A case is pending","No case is pending")} against ${MrMrs(g)} ${blank(proper(t.staffName))} at ${declYN(t.declCasePending,"a Court of Law","any Court of Law")}; (ii) ${declYN(t.declPostLitigation,"litigation is pending","no litigation is pending")} against the post of ${blank(proper(t.designation))} in which ${heshe(g)} ${retired?"worked":"is working"}; and (iii) ${declYN(t.declClaimMatter,"a matter related to","no matter related to")} ${hisHer(g)} claim is pending at ${declYN(t.declClaimMatter,"a Court of Law","any Court of Law")}.`
+    + (anyYes ? ` Details (Case No., Court, Present Status): ${t.declCaseDetails ? `<strong>${escapeHtml(t.declCaseDetails)}</strong>` : "______________________________________________"}.` : ``)
+    + (unset ? ` <span class="small">[Delete whichever is not applicable.]</span>` : ``);
+}
+function sbLoanCertText(t,c){
+  const g=t.gender;
+  const anyYes = [t.declBankLoan,t.declSocietyLoan].some(v=>String(v||"").toUpperCase()==="YES");
+  const unset = [t.declBankLoan,t.declSocietyLoan].some(v=>!v);
+  return `<strong>Regarding Outstanding Personal Loan (Bank / Teachers' Credit Co-operative Society):</strong> (i) ${MrMrs(g)} ${blank(proper(t.staffName))} ${declYN(t.declBankLoan,"has an outstanding personal loan to a Bank","has no outstanding personal loan to any Bank")}; and (ii) ${heshe(g)} ${declYN(t.declSocietyLoan,"has an outstanding personal loan to a Teachers' Credit Co-operative Society","has no outstanding personal loan to any Teachers' Credit Co-operative Society")}.`
+    + (anyYes ? ` Details of loan (Bank / Society name, A/C No., Outstanding Rs.): ${t.declLoanDetails ? `<strong>${escapeHtml(t.declLoanDetails)}</strong>` : "______________________________________________"}.` : ``)
+    + (unset ? ` <span class="small">[Delete whichever is not applicable.]</span>` : ``);
+}
+
 function docSB(t,c){
   const g = t.gender;
   const doj1 = t.dojFirst, doj2 = t.dojPrevSchool2, doj3 = t.dojThisSchool;
@@ -1018,6 +1037,8 @@ function docSB(t,c){
       <li>${heShe(g)} enjoyed ${blank(t.medicalLeave)} days Medical Leave with full average pay, ${blank(t.halfPayLeave)} days Half Pay Leave, ${blank(t.extraOrdinaryLeave)} days Extra Ordinary Leave and ${blank(t.specialLeave)} days Special Leave during tenure i.e. ${blank(fmtDate(t.dojFirst,"dd-mm-yyyy"))} to till date of ${hisHer(g)} service period, and other leave if any, all leaves have been approved by the M.C. / Competent Authority.</li>
       <li>${heShe(g)} will retire on attaining the age of superannuation on ${c.dor?fmtDate(c.dorStr,"dd-mm-yyyy"):"[DOB required]"} and ${hisHer(g)} basic pay as per ROPA-19 will be Rs. ${inr(t.lastBasicPay)} on the date of superannuation retirement ${c.dor?fmtDate(c.dorStr,"dd-mmmm-yyyy"):""} (a.n.).</li>
       <li>It is recommended that Pension, Gratuity and other retirement benefits should be admissible to ${himHer(g)} as per ROPA-19 rules.</li>
+      <li>${sbCaseCertText(t,c)}</li>
+      <li>${sbLoanCertText(t,c)}</li>
     </ol>
     <p><strong>Certificate regarding Employment / Non-Employment of Spouse:</strong></p>
     <p>${docSBEmploymentCertText(t,c)}</p>
