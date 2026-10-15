@@ -1532,26 +1532,28 @@ function docFLP(t,c){
         <div class="sig-line">Signature of the HOI${hoiLine(t)}</div>
       </div>
     </div>
-    <p style="margin-top:8mm;"><strong>Enclosures [In Duplicate]:</strong></p>
-    <ol class="items small">
-      <li>Original and Copy of Service Book of the employee.</li>
-      <li>e-submitted forms - Part-A, Part-B, Part-C, Part-D, Part-E, ANNEXURE-I [As per ROPA-19]</li>
-      <li>Copy of School Recognition Memos.</li>
-      <li>Duly attested Joint photograph of the employee and Spouse.</li>
-      <li>Duly attested specimen signature of the employee.</li>
-      <li>Various Nomination Forms filled up by the employee.</li>
-      <li>Age proof and all academic certificates of the employee.</li>
-      <li>Approval(s) of Appointment of the employee.</li>
-      <li>All I.P.F.(s) of ROPA - 1998, 2009, 2019 in Original with option and one set Xerox.</li>
-      ${t.spouseStatus==="IN SERVICE" ? `<li>Declaration and Statement of HRA jointly drawn by the employee and spouse.</li>` : ``}
-      <li>Certificate regarding employment / non-employment of spouse and HRA.</li>
-      <li>Pay Certificate (Part-C in format).</li>
-      <li>No Liabilities Certificate (in format).</li>
-      <li>Particulars of Spouse such as document regarding proof of DOB, Marriage, etc.</li>
-      <li>Documents regarding Refund / Adjustment of Overpayment of salary, if any.</li>
-      <li>System-Generated Pay Slip of the incumbent for the specific month in which the pension file is being submitted to your office.</li>
-      <li>Declaration by the ${declByLabel(t)} regarding pendency of any case against the teacher / litigation against the post / any matter related to ${hisHer(g)} claim at any Court of Law, along with the declaration submitted by the employee${t.declDate?` dated ${fmtDate(t.declDate,"dd-mm-yyyy")}`:``}.</li>
-      <li>Declaration by the ${declByLabel(t)} regarding any outstanding personal loan of the incumbent to any Bank or Teachers' Credit Co-operative Society, along with the declaration submitted by the employee${t.declDate?` dated ${fmtDate(t.declDate,"dd-mm-yyyy")}`:``}.</li>
+    <p style="margin-top:5mm;margin-bottom:1mm;"><strong>Enclosures [In Duplicate]:</strong></p>
+    <ol class="items small" style="font-size:9.5pt;line-height:1.3;margin:0;">
+      ${[
+        "Original and copy of Service Book.",
+        "e-submitted Part-A, B, C, D, E and Annexure-I (as per ROPA-19).",
+        "Copy of School Recognition Memos.",
+        "Attested joint photograph of employee and spouse.",
+        "Attested specimen signature of employee.",
+        "Nomination forms filled up by employee.",
+        "Age proof and all academic certificates.",
+        "Approval(s) of appointment.",
+        "All I.P.F.(s) of ROPA 1998, 2009, 2019 (original + one xerox).",
+        t.spouseStatus==="IN SERVICE" ? "Declaration and statement of HRA jointly drawn by employee and spouse." : "",
+        "Certificate regarding employment / non-employment of spouse and HRA.",
+        "Pay Certificate (Part-C).",
+        "No Liabilities Certificate.",
+        "Spouse particulars (proof of DOB, marriage, etc.).",
+        "Refund / adjustment of overpayment of salary, if any.",
+        "System-generated pay slip of the incumbent (month of submission).",
+        `Declaration by ${declByLabel(t)}: court case / litigation / claim, with employee's declaration.`,
+        `Declaration by ${declByLabel(t)}: outstanding Bank / Teachers' Credit Society loan, with employee's declaration.`
+      ].filter(Boolean).map(x=>`<li style="white-space:nowrap;margin-bottom:0.6mm;text-align:left;">${x}</li>`).join("")}
     </ol>
   `);
 }
