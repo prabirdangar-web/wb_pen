@@ -1146,7 +1146,7 @@ function docE(t,c){
     
     let altNameCell = "";
     if (alt) {
-      altNameCell = `<strong>(${i+2})</strong> ${blank(alt.name)}<br><span style="font-size:8.5pt;">${blank(proper(t.selfSpouseAddress))}, ${upper(alt.rel)} [${sharePct}%]</span>`;
+      altNameCell = `<strong>(${i+1})</strong> ${blank(alt.name)}<br><span style="font-size:8.5pt;">${blank(proper(t.selfSpouseAddress))}, ${upper(alt.rel)} [DOB: ${blank(fmtDate(alt.dob,"dd-mm-yyyy"))}] [${sharePct}%]</span>`;
     }
     
     row += `<td style="width:18%;">${altNameCell}</td>`;
@@ -1262,7 +1262,7 @@ function docD(t,c){
     
     let altNameCell = "";
     if(alt) {
-      altNameCell = `<strong>(${i+2})</strong> ${blank(alt.name)}<br><span style="font-size:8.5pt;">${blank(proper(t.selfSpouseAddress))}, ${upper(alt.rel)} [DOB: ${blank(fmtDate(alt.dob,"dd-mm-yyyy"))}]</span>`;
+      altNameCell = `<strong>(${i+1})</strong> ${blank(alt.name)}<br><span style="font-size:8.5pt;">${blank(proper(t.selfSpouseAddress))}, ${upper(alt.rel)} [DOB: ${blank(fmtDate(alt.dob,"dd-mm-yyyy"))}]</span>`;
     }
     
     row += `<td style="width:24%;">${altNameCell}</td>`;
