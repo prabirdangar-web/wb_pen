@@ -1466,7 +1466,7 @@ function docPAYC(t,c){
     if (cand <= existingIncDate) cand = new Date(existingIncDate.getFullYear() + 1, 6, 1);
     if (cand <= c.dor) { incDate = cand; incDerived = true; }
   }
-  const comparePay = incDerived ? Number(asOnAmount) : Number(t.lastButBasicPay);
+  const comparePay = (existingIncDate && incDate && incDate > existingIncDate) ? Number(asOnAmount) : Number(t.lastButBasicPay);
   const hasIncrement = incDate && Number(t.lastBasicPay) !== comparePay && (!c.dor || incDate <= c.dor);
   const incDateStr = incDate ? fmtD(incDate, "dd-mm-yyyy") : "";
 
