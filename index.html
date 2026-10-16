@@ -1453,21 +1453,31 @@ function docPAYC(t,c){
 
   const existingIncDate = toDate(t.existingIncrementDate);
   const lastJulyStr = existingIncDate ? fmtD(existingIncDate, "dd.mm.yyyy") : "____________";
-  const wasIs = "was";
+  const wasIs = (existingIncDate && existingIncDate > today) ? "is" : "was";
   const asOnAmount = (t.existingIncrementAmount!=="" && t.existingIncrementAmount!==null && t.existingIncrementAmount!==undefined)
     ? t.existingIncrementAmount : t.lastButBasicPay;
 
-  const incDate = toDate(t.lastIncrementDate);
-  const hasIncrement = incDate && Number(t.lastBasicPay) !== Number(t.lastButBasicPay) && (!c.dor || incDate <= c.dor);
+  let incDate = toDate(t.lastIncrementDate);
+  // If the increment date is blank (or not later than the "as on" date), look for the 1st-July
+  // increment that falls between the "as on" date and the date of retirement (e.g. 01-07-2027).
+  let incDerived = false;
+  if (existingIncDate && c.dor && (!incDate || incDate <= existingIncDate)) {
+    let cand = new Date(existingIncDate.getFullYear(), 6, 1);
+    if (cand <= existingIncDate) cand = new Date(existingIncDate.getFullYear() + 1, 6, 1);
+    if (cand <= c.dor) { incDate = cand; incDerived = true; }
+  }
+  const comparePay = incDerived ? Number(asOnAmount) : Number(t.lastButBasicPay);
+  const hasIncrement = incDate && Number(t.lastBasicPay) !== comparePay && (!c.dor || incDate <= c.dor);
+  const incDateStr = incDate ? fmtD(incDate, "dd-mm-yyyy") : "";
 
   let clauseB = "";
   if (hasIncrement) {
     const isIncPast = today >= incDate;
     const isWasDue = isIncPast ? "was due" : "is due";
     const willRaise = isIncPast ? "raised" : "will raise";
-    clauseB = `(b). ${HisHer(g)} last increment before retirement in the aforesaid scale ${isWasDue} on <strong>${fmtDate(t.lastIncrementDate,"dd-mm-yyyy")}</strong> which ${willRaise} ${hisHer(g)} pay to Rs. <strong>${inr(t.lastBasicPay)}</strong> p.m. up to the date of ${hisHer(g)} Superannuation on <strong>${c.dor ? fmtDate(c.dorStr,"dd-mm-yyyy") : ""}</strong>`;
+    clauseB = `(b). ${HisHer(g)} last increment before retirement in the aforesaid scale ${isWasDue} on <strong>${incDateStr}</strong> which ${willRaise} ${hisHer(g)} pay to Rs. <strong>${inr(t.lastBasicPay)}</strong> p.m. up to the date of ${hisHer(g)} Superannuation on <strong>${c.dor ? fmtDate(c.dorStr,"dd-mm-yyyy") : ""}</strong>`;
   } else {
-    clauseB = `(b). ${HisHer(g)} last increment before retirement in the aforesaid scale was due on <strong>NIL</strong> FOR which ${hisHer(g)} pay Rs. <strong>${inr(t.lastBasicPay)}</strong> p.m. <strong>WILL CONTINUE</strong> up to the date of ${hisHer(g)} Superannuation on <strong>${c.dor ? fmtDate(c.dorStr,"dd-mm-yyyy") : ""}</strong>`;
+    clauseB = `(b). ${HisHer(g)} last increment before retirement in the aforesaid scale ${(c.dor && today < c.dor) ? "is" : "was"} due on <strong>NIL</strong> FOR which ${hisHer(g)} pay Rs. <strong>${inr(t.lastBasicPay)}</strong> p.m. <strong>WILL CONTINUE</strong> up to the date of ${hisHer(g)} Superannuation on <strong>${c.dor ? fmtDate(c.dorStr,"dd-mm-yyyy") : ""}</strong>`;
   }
 
   return pageWrap(`
