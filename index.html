@@ -597,7 +597,7 @@
   <div class="modal-box wide">
     <button class="modal-close" id="btnStatusClose" aria-label="Close">✕</button>
     <h3>Check Pension Status — e-Pension (W.B.)</h3>
-    <p class="sub">Official portal: <b>epension.wb.gov.in</b>. The button below opens it in a new tab.</p>
+    <p class="sub">Official portal: <b>epension.wb.gov.in</b>. Use <b>Pension Status Enquiry → Search By: Employee ID</b>.</p>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
       <button class="btn btn-status" id="btnOpenEpension">🔎 Open e-Pension Portal ↗</button>
       <button class="btn btn-wa" id="btnGuideWA">Share guide on WhatsApp</button>
@@ -608,12 +608,12 @@
       <div class="bn-guide bn">
         <h4>পেনশনের স্ট্যাটাস দেখার নিয়ম (বাংলা গাইড)</h4>
         <ol>
-          <li>উপরের <mark>Open e-Pension Portal</mark> বোতামে ক্লিক করুন — নতুন ট্যাবে <mark>epension.wb.gov.in</mark> খুলবে।</li>
-          <li>ইন্টারনেট চালু থাকা মোবাইল বা কম্পিউটারে হোমপেজে এসে <mark>Login</mark> অংশে যান। স্কুলের <b>HOI User ID</b> অথবা কর্মীর নিজের <b>Applicant Login</b> ব্যবহার করুন।</li>
-          <li>লগইনের পর ড্যাশবোর্ডে <mark>Application Status / Track Application / PPO</mark> সংক্রান্ত অপশনটি খুঁজুন (পোর্টালের মেনুর নাম সময়ে সময়ে বদলাতে পারে)।</li>
-          <li>উপরে দেখানো <mark>Application ID</mark>, <mark>Employee Code</mark> বা <mark>PPO No.</mark> দিয়ে আবেদনটি খুঁজুন। তথ্য <b>Copy</b> বোতাম দিয়ে কপি করে বসাতে পারেন।</li>
+          <li>উপরের <mark>Open e-Pension Portal</mark> বোতামে ক্লিক করুন — নতুন ট্যাবে <mark>epension.wb.gov.in</mark> খুলবে। এই কাজে <b>লগইন লাগবে না</b>।</li>
+          <li>হোমপেজে <mark>Pension Status Enquiry</mark> (পেনশন স্ট্যাটাস এনকোয়ারি) অপশনটি খুঁজে ক্লিক করুন।</li>
+          <li><mark>Search By</mark>-এ <mark>Employee ID</mark> বেছে নিন। এখানে <b>PPO নম্বর দিয়ে খোঁজার অপশন নেই</b> — তাই PPO নম্বর লিখবেন না।</li>
+          <li>উপরে দেখানো <mark>Employee ID</mark> <b>Copy</b> বোতামে কপি করে ঘরে বসান, <mark>Captcha</mark> লিখে <mark>Search</mark> করুন।</li>
           <li>দেখুন আবেদনটি এখন কোন স্তরে আছে — <mark>স্কুল / ডি.আই. অফিস / DPPG</mark> — এবং শেষ কোন তারিখে কী হয়েছে। স্ক্রিনশট রেখে দিন।</li>
-          <li>কোনো <mark>Returned / Objection</mark> দেখালে কারণটি মন দিয়ে পড়ুন, সংশোধন করে আবার জমা (e-Submit) করুন এবং প্রয়োজনে ডি.আই. অফিসে যোগাযোগ করুন।</li>
+          <li>কোনো <mark>Returned / Objection</mark> দেখালে কারণটি পড়ে সংশোধন করে আবার জমা (e-Submit) করুন এবং প্রয়োজনে ডি.আই. অফিসে যোগাযোগ করুন।</li>
           <li><b>PPO</b> ইস্যু হয়ে গেলে PPO নম্বর ও মেমো নম্বর এই পোর্টালের <b>Pay &amp; Pension Inputs</b>-এ লিখে রাখুন, তাহলে পরবর্তী চিঠিগুলিতে নিজে থেকেই বসবে।</li>
         </ol>
       </div>
@@ -3346,7 +3346,7 @@ $("#btnIaOpen").addEventListener("click", ()=>{ activeTab = "dash"; render(); wi
 const SHARE_URL = "https://prabirdangar-web.github.io/pension_data_collection/";
 function shareMessage(){
   return "Dear Colleague,\n\nPlease submit your Pension / Superannuation details online using this link:\n" + SHARE_URL +
-"\n\nHow to fill:\n1. Open the link on your mobile/computer.\n2. Fill School Information and Employee Details (compulsory: Name of the Staff, Number of previous schools).\n3. Fill education and service rows; boxes that do not apply turn grey.\n4. Commutation: enter whole number, e.g. 40 for 40%.\n5. Tap Submit Details ONCE and wait for the green tick with a Reference number. Keep a screenshot.\n6. If an error shows, check internet and tap Submit again.\n7. Mistake later? Open the same link, correct the field and tap Resubmit Updated Details.\n\nTo check the status of your pension application later, visit: https://epension.wb.gov.in/e_PensionHome/index\n(পেনশনের স্ট্যাটাস দেখতে: https://epension.wb.gov.in/e_PensionHome/index — Login করে Application Status / PPO অপশন দেখুন।)\n\nThank you.\n- Headmaster";
+"\n\nHow to fill:\n1. Open the link on your mobile/computer.\n2. Fill School Information and Employee Details (compulsory: Name of the Staff, Number of previous schools).\n3. Fill education and service rows; boxes that do not apply turn grey.\n4. Commutation: enter whole number, e.g. 40 for 40%.\n5. Tap Submit Details ONCE and wait for the green tick with a Reference number. Keep a screenshot.\n6. If an error shows, check internet and tap Submit again.\n7. Mistake later? Open the same link, correct the field and tap Resubmit Updated Details.\n\nTo check the status of your pension application, open: https://epension.wb.gov.in/e_PensionHome/index → Pension Status Enquiry → Search By: Employee ID → enter your Employee ID and Captcha.\n(পেনশনের স্ট্যাটাস দেখতে: https://epension.wb.gov.in/e_PensionHome/index → Pension Status Enquiry → Search By: Employee ID → Employee ID ও Captcha দিয়ে Search করুন।)\n\nThank you.\n- Headmaster";
 }
 async function copyText(t){
   try{ await navigator.clipboard.writeText(t); return true; }
@@ -3377,27 +3377,25 @@ $("#btnOpenForm").addEventListener("click", ()=>{ window.open(SHARE_URL, "_blank
    ========================================================================= */
 const EPENSION_URL = "https://epension.wb.gov.in/e_PensionHome/index";
 function bengaliGuideText(){
-  return "পেনশনের স্ট্যাটাস দেখার নিয়ম:\n1. e-Pension পোর্টাল খুলুন: " + EPENSION_URL +
-"\n2. Login অংশে স্কুলের HOI User ID বা কর্মীর নিজের Applicant Login দিয়ে প্রবেশ করুন।\n3. ড্যাশবোর্ডে Application Status / Track Application / PPO অপশন খুঁজুন।\n4. Application ID, Employee Code বা PPO No. দিয়ে আবেদন খুঁজুন।\n5. আবেদন এখন কোন স্তরে (স্কুল / ডি.আই. অফিস / DPPG) আছে দেখুন, স্ক্রিনশট রাখুন।\n6. Returned / Objection দেখালে কারণ পড়ে সংশোধন করে আবার জমা দিন।";
+  return "পেনশনের স্ট্যাটাস দেখার নিয়ম:\n1. e-Pension পোর্টাল খুলুন (লগইন লাগবে না): " + EPENSION_URL +
+"\n2. হোমপেজে Pension Status Enquiry অপশনে ক্লিক করুন।\n3. Search By-এ Employee ID বেছে নিন (PPO নম্বর দিয়ে খোঁজার অপশন নেই)।\n4. আপনার Employee ID (Employee Code) বসান, Captcha লিখে Search করুন।\n5. আবেদনটি এখন কোন স্তরে (স্কুল / ডি.আই. অফিস / DPPG) আছে দেখুন, স্ক্রিনশট রাখুন।\n6. Returned / Objection দেখালে কারণ পড়ে স্কুল অফিসে জানান।";
 }
 function openEpension(){ window.open(EPENSION_URL, "_blank", "noopener"); }
 function openStatusModal(){
   const t = current || {};
-  const rows = [["Name", proper(t.staffName)],["Employee Code", t.employeeCode],["Application ID", t.applicationId],["PPO No.", t.ppoNo],["School User ID", t.currentUserId]]
-    .filter(r=>r[1]);
-  $("#statusIds").innerHTML = rows.length
-    ? `<div class="bn-guide"><h4>Selected record — copy &amp; paste into the portal</h4>` +
-      rows.map(r=>`<div class="id-chip"><b>${r[0]}</b><code>${escapeHtml(r[1])}</code><button class="btn btn-ghost dk" data-copy="${escapeHtml(r[1])}">Copy</button></div>`).join("") + `</div>`
-    : `<p class="hint">Select or save a pensioner record to see its Application ID / Employee Code / PPO No. here.</p>`;
+  const rows = [["Name", proper(t.staffName)],["Employee ID", t.employeeCode]].filter(r=>r[1]);
+  $("#statusIds").innerHTML = (t.employeeCode)
+    ? `<div class="bn-guide"><h4>Selected record — copy the Employee ID into the portal</h4>` +
+      rows.map(r=>`<div class="id-chip"><b>${r[0]}</b><code>${escapeHtml(r[1])}</code>${r[0]==="Employee ID"?`<button class="btn btn-ghost dk" data-copy="${escapeHtml(r[1])}">Copy</button>`:""}</div>`).join("") + `</div>`
+    : `<p class="hint">Select a saved pensioner record that has an Employee Code to see the Employee ID here for copy &amp; paste.</p>`;
   $$("#statusIds [data-copy]").forEach(b=>b.addEventListener("click", async ()=>{
     const ok = await copyText(b.dataset.copy); b.textContent = ok ? "Copied ✓" : "Failed";
     setTimeout(()=>{ b.textContent="Copy"; }, 1500);
   }));
   $("#statusModal").hidden = false;
 }
-["btnPensionStatus","btnPensionStatusSide","btnPensionGuide"].forEach(id=>$("#"+id).addEventListener("click", ()=>{
-  if(id==="btnPensionStatus") { openStatusModal(); } else openStatusModal();
-}));
+$("#btnPensionStatus").addEventListener("click", openEpension);   // straight to epension.wb.gov.in
+["btnPensionStatusSide","btnPensionGuide"].forEach(id=>$("#"+id).addEventListener("click", openStatusModal));
 $("#btnStatusClose").addEventListener("click", ()=>{ $("#statusModal").hidden = true; });
 $("#statusModal").addEventListener("click", e=>{ if(e.target.id==="statusModal") $("#statusModal").hidden = true; });
 $("#btnOpenEpension").addEventListener("click", openEpension);
