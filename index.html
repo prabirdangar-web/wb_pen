@@ -295,6 +295,75 @@
   .guide-box ol{margin:0;padding-left:20px;font-size:12.5px;line-height:1.6;color:var(--ink);}
   .btn-wa{background:#25D366;color:#fff;}
   .btn-wa:hover{background:#1ebe5b;}
+
+  /* ---------- Pension status bar (flashing highlight) ---------- */
+  .ps-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:9px 22px;background:#fff7ec;border-bottom:1px solid var(--gold);}
+  .ps-flash{font-weight:800;font-size:13.5px;color:#fff;background:var(--danger);padding:6px 12px;border-radius:20px;animation:psFlash 1.1s ease-in-out infinite;}
+  .ps-bar .ps-txt{font-size:12.5px;color:#7a541f;flex:1 1 220px;}
+  .btn-status{background:var(--ok);color:#fff;animation:psPulse 1.6s ease-in-out infinite;}
+  .btn-status:hover{background:#236440;}
+  .btn-bn{background:#fff;color:var(--navy);border:1px solid var(--gold);}
+  .btn-bn:hover{background:#fff7ec;}
+  @keyframes psFlash{0%,100%{background:var(--danger);transform:scale(1);}50%{background:#e0a100;transform:scale(1.05);}}
+  @keyframes psPulse{0%{box-shadow:0 0 0 0 rgba(46,125,79,.65);}70%{box-shadow:0 0 0 12px rgba(46,125,79,0);}100%{box-shadow:0 0 0 0 rgba(46,125,79,0);}}
+  .sidebar .btn-status{width:100%;}
+  @media (prefers-reduced-motion: reduce){ .ps-flash,.btn-status{animation:none;} }
+  .bn{font-family:"Noto Sans Bengali","Nirmala UI","Vrinda","Shonar Bangla",Arial,sans-serif;}
+  .bn-guide{border:2px solid var(--gold);background:#fffdf5;border-radius:8px;padding:10px 14px;margin:8px 0;}
+  .bn-guide h4{margin:0 0 6px;color:var(--navy);font-size:15px;}
+  .bn-guide ol{margin:0;padding-left:22px;font-size:14px;line-height:1.85;color:var(--ink);}
+  .bn-guide mark{background:#ffe27a;color:#222;padding:0 3px;border-radius:3px;font-weight:700;animation:markGlow 1.4s ease-in-out infinite alternate;}
+  @keyframes markGlow{from{background:#ffe27a;}to{background:#ffc83d;}}
+  @media (prefers-reduced-motion: reduce){ .bn-guide mark{animation:none;} }
+  .id-chip{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:4px 0;font-size:12.5px;}
+  .id-chip b{min-width:110px;color:var(--muted);}
+  .id-chip code{background:#eef3f7;border:1px solid var(--line);border-radius:4px;padding:3px 7px;font-size:13px;word-break:break-all;}
+  .id-chip button{padding:3px 9px;font-size:11.5px;}
+  .modal-box.wide .btn-ghost.dk{color:var(--navy);border-color:var(--line);}
+  .modal-box.wide .btn-ghost.dk:hover{background:#eef3f7;}
+  .sb-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:9px 10px;border-bottom:1px solid #eef0f2;font-size:12.5px;}
+  .sb-row:last-child{border-bottom:none;}
+  .sb-row .info{flex:1 1 200px;min-width:0;}
+  .sb-row .nm{font-weight:700;color:var(--navy);display:block;}
+  .sb-row .meta{font-size:11px;color:var(--muted);}
+  .sb-row .acts{display:flex;gap:6px;flex-wrap:wrap;}
+  .sb-row .acts .btn{padding:6px 10px;font-size:12px;}
+  .sb-note{font-size:11.5px;color:var(--muted);margin:6px 0 0;line-height:1.5;}
+
+  /* ---------- Full mobile / touch support ---------- */
+  html{-webkit-text-size-adjust:100%;}
+  @media screen and (max-width:860px){
+    body{overflow-x:hidden;}
+    .btn{min-height:40px;}
+    input[type=text],input[type=number],input[type=date],input[type=password],select,textarea,.search-box{font-size:16px;min-height:40px;}
+    .topbar{padding:8px 12px;flex-wrap:wrap;gap:8px;}
+    .topbar .title{flex:1 1 100%;order:3;font-size:14px;}
+    .tabs{padding:0 8px;}
+    .tab{padding:12px 12px;}
+    .ps-bar{padding:8px 12px;gap:8px;}
+    .ps-bar .btn{flex:1 1 140px;}
+    .form-actions{padding:10px 12px;flex-wrap:wrap;}
+    .form-actions .btn{flex:1 1 40%;}
+    #saveStatus{flex:1 1 100%;}
+    fieldset{padding:12px 12px 14px;}
+    .summary-grid{grid-template-columns:1fr 1fr;}
+    .sum-card .val{font-size:15px;word-break:break-word;}
+    .doc-preview-wrap{padding:8px;overflow-x:auto;}
+    .preview-toolbar .btn{width:100%;}
+    .doc-btn{min-width:46%;}
+    /* Paper stays true A4 and is scaled to the screen width by JS (zoom) so every document is fully visible */
+    .page{width:210mm !important;max-width:none !important;min-height:296mm;padding:16mm 16mm 14mm !important;transform:none;}
+    .page.landscape-layout{width:297mm !important;min-height:210mm !important;}
+    .page.cover-poster-layout{width:210mm !important;padding:10mm !important;}
+    .modal-overlay{padding:8px;align-items:flex-end;}
+    .modal-box,.modal-box.wide{max-width:100%;max-height:92vh;overflow-y:auto;border-radius:12px 12px 8px 8px;}
+    .share-link{flex-direction:column;}
+    .sb-row .acts{width:100%;}
+    .sb-row .acts .btn{flex:1 1 45%;}
+    .id-chip b{min-width:100%;}
+  }
+  @media screen and (max-width:420px){ .summary-grid{grid-template-columns:1fr;} }
+  @media print{ .ps-bar,#statusModal,#sbModal{display:none !important;} .page{zoom:1 !important;} }
 </style>
   <!-- SheetJS: browser-side Excel (.xls/.xlsx) reader -->
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
@@ -302,6 +371,7 @@
   <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 <div class="app">
@@ -324,6 +394,8 @@
     <input type="file" id="fileImportExcel" accept=".xls,.xlsx,.xlsm,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" style="display:none;">
     <button class="btn btn-ghost btn-block" id="btnQuickShare">🔗 Share Link &amp; Guide (Data Collection)</button>
     <button class="btn btn-primary btn-block" id="btnFetchInbox">📥 Fetch Submissions (Google Sheet)</button>
+    <button class="btn btn-ghost btn-block" id="btnImportSB">📚 Import from SB (choose employee)</button>
+    <button class="btn btn-status btn-block" id="btnPensionStatusSide">🔎 Check Pension Status (e-Pension)</button>
     <input class="search-box" id="searchBox" placeholder="Search saved records...">
     <div class="rec-list" id="recList"></div>
     <div id="sideStatus"></div>
@@ -348,6 +420,12 @@
       <div class="title" id="topTitle">New Pensioner Record</div>
       <button class="btn btn-ghost" id="btnDuplicate" style="display:none;">Duplicate as New</button>
       <button class="btn btn-danger" id="btnDelete" style="display:none;">Delete Record</button>
+    </div>
+    <div class="ps-bar" id="pensionStatusBar">
+      <span class="ps-flash bn">🔔 পেনশনের বর্তমান অবস্থা দেখুন</span>
+      <span class="ps-txt bn">আবেদন কোথায় আছে — e-Pension পোর্টালে স্ট্যাটাস চেক করুন (বাংলা গাইড সহ)।</span>
+      <button class="btn btn-status" id="btnPensionStatus">🔎 Check Pension Status ↗</button>
+      <button class="btn btn-bn bn" id="btnPensionGuide">📖 বাংলা গাইড</button>
     </div>
     <div class="tabs">
       <div class="tab active" data-tab="form">1. Enter Data</div>
@@ -430,6 +508,51 @@
         </ol>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- PENSION STATUS MODAL -->
+<div class="modal-overlay" id="statusModal" hidden>
+  <div class="modal-box wide">
+    <button class="modal-close" id="btnStatusClose" aria-label="Close">✕</button>
+    <h3>Check Pension Status — e-Pension (W.B.)</h3>
+    <p class="sub">Official portal: <b>epension.wb.gov.in</b>. The button below opens it in a new tab.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+      <button class="btn btn-status" id="btnOpenEpension">🔎 Open e-Pension Portal ↗</button>
+      <button class="btn btn-wa" id="btnGuideWA">Share guide on WhatsApp</button>
+      <button class="btn btn-ghost dk" id="btnCopyGuide">Copy Bengali guide</button>
+    </div>
+    <div style="overflow:auto;flex:1;">
+      <div id="statusIds"></div>
+      <div class="bn-guide bn">
+        <h4>পেনশনের স্ট্যাটাস দেখার নিয়ম (বাংলা গাইড)</h4>
+        <ol>
+          <li>উপরের <mark>Open e-Pension Portal</mark> বোতামে ক্লিক করুন — নতুন ট্যাবে <mark>epension.wb.gov.in</mark> খুলবে।</li>
+          <li>ইন্টারনেট চালু থাকা মোবাইল বা কম্পিউটারে হোমপেজে এসে <mark>Login</mark> অংশে যান। স্কুলের <b>HOI User ID</b> অথবা কর্মীর নিজের <b>Applicant Login</b> ব্যবহার করুন।</li>
+          <li>লগইনের পর ড্যাশবোর্ডে <mark>Application Status / Track Application / PPO</mark> সংক্রান্ত অপশনটি খুঁজুন (পোর্টালের মেনুর নাম সময়ে সময়ে বদলাতে পারে)।</li>
+          <li>উপরে দেখানো <mark>Application ID</mark>, <mark>Employee Code</mark> বা <mark>PPO No.</mark> দিয়ে আবেদনটি খুঁজুন। তথ্য <b>Copy</b> বোতাম দিয়ে কপি করে বসাতে পারেন।</li>
+          <li>দেখুন আবেদনটি এখন কোন স্তরে আছে — <mark>স্কুল / ডি.আই. অফিস / DPPG</mark> — এবং শেষ কোন তারিখে কী হয়েছে। স্ক্রিনশট রেখে দিন।</li>
+          <li>কোনো <mark>Returned / Objection</mark> দেখালে কারণটি মন দিয়ে পড়ুন, সংশোধন করে আবার জমা (e-Submit) করুন এবং প্রয়োজনে ডি.আই. অফিসে যোগাযোগ করুন।</li>
+          <li><b>PPO</b> ইস্যু হয়ে গেলে PPO নম্বর ও মেমো নম্বর এই পোর্টালের <b>Pay &amp; Pension Inputs</b>-এ লিখে রাখুন, তাহলে পরবর্তী চিঠিগুলিতে নিজে থেকেই বসবে।</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SB IMPORT MODAL -->
+<div class="modal-overlay" id="sbModal" hidden>
+  <div class="modal-box wide">
+    <button class="modal-close" id="btnSbClose" aria-label="Close">✕</button>
+    <h3>Import from SB (Service Book / ROPA app)</h3>
+    <p class="sub">Choose the employee you want. Matching data (name, designation, DOB, joining dates, previous schools, school details, leave days) is copied to this portal.</p>
+    <div class="inbox-tools">
+      <input class="search-box" id="sbSearch" placeholder="Search employee name..." style="flex:1;background:#fff;color:var(--ink);border-color:var(--line);">
+      <button class="btn btn-ghost dk" id="btnSbRefresh">↻ Refresh</button>
+    </div>
+    <div class="inbox-list" id="sbList"><div style="padding:14px;color:var(--muted);">Loading…</div></div>
+    <div class="modal-err" id="sbErr"></div>
+    <p class="sb-note"><b>New record</b> saves a fresh pensioner and opens it. <b>Fill current form</b> copies only the non-empty SB values into the record now on screen (nothing is saved until you press Save Record). Pay figures (Last Basic Pay, D.A., HRA, PPO etc.) are not stored by SB — enter them in <i>Pay &amp; Pension Inputs</i>.</p>
   </div>
 </div>
 
@@ -2819,7 +2942,7 @@ $("#btnInboxImport").addEventListener("click", async ()=>{
 const SHARE_URL = "https://prabirdangar-web.github.io/pension_data_collection/";
 function shareMessage(){
   return "Dear Colleague,\n\nPlease submit your Pension / Superannuation details online using this link:\n" + SHARE_URL +
-"\n\nHow to fill:\n1. Open the link on your mobile/computer.\n2. Fill School Information and Employee Details (compulsory: Name of the Staff, Number of previous schools).\n3. Fill education and service rows; boxes that do not apply turn grey.\n4. Commutation: enter whole number, e.g. 40 for 40%.\n5. Tap Submit Details ONCE and wait for the green tick with a Reference number. Keep a screenshot.\n6. If an error shows, check internet and tap Submit again.\n\nThank you.\n- Headmaster";
+"\n\nHow to fill:\n1. Open the link on your mobile/computer.\n2. Fill School Information and Employee Details (compulsory: Name of the Staff, Number of previous schools).\n3. Fill education and service rows; boxes that do not apply turn grey.\n4. Commutation: enter whole number, e.g. 40 for 40%.\n5. Tap Submit Details ONCE and wait for the green tick with a Reference number. Keep a screenshot.\n6. If an error shows, check internet and tap Submit again.\n\nTo check the status of your pension application later, visit: https://epension.wb.gov.in/e_PensionHome/index\n(পেনশনের স্ট্যাটাস দেখতে: https://epension.wb.gov.in/e_PensionHome/index — Login করে Application Status / PPO অপশন দেখুন।)\n\nThank you.\n- Headmaster";
 }
 async function copyText(t){
   try{ await navigator.clipboard.writeText(t); return true; }
@@ -2843,6 +2966,196 @@ $("#btnShareWA").addEventListener("click", ()=>{
   window.open("https://wa.me/?text=" + encodeURIComponent(shareMessage()), "_blank", "noopener");
 });
 $("#btnOpenForm").addEventListener("click", ()=>{ window.open(SHARE_URL, "_blank", "noopener"); });
+
+
+/* =========================================================================
+   PENSION STATUS (e-Pension W.B.) — link + Bengali guide
+   ========================================================================= */
+const EPENSION_URL = "https://epension.wb.gov.in/e_PensionHome/index";
+function bengaliGuideText(){
+  return "পেনশনের স্ট্যাটাস দেখার নিয়ম:\n1. e-Pension পোর্টাল খুলুন: " + EPENSION_URL +
+"\n2. Login অংশে স্কুলের HOI User ID বা কর্মীর নিজের Applicant Login দিয়ে প্রবেশ করুন।\n3. ড্যাশবোর্ডে Application Status / Track Application / PPO অপশন খুঁজুন।\n4. Application ID, Employee Code বা PPO No. দিয়ে আবেদন খুঁজুন।\n5. আবেদন এখন কোন স্তরে (স্কুল / ডি.আই. অফিস / DPPG) আছে দেখুন, স্ক্রিনশট রাখুন।\n6. Returned / Objection দেখালে কারণ পড়ে সংশোধন করে আবার জমা দিন।";
+}
+function openEpension(){ window.open(EPENSION_URL, "_blank", "noopener"); }
+function openStatusModal(){
+  const t = current || {};
+  const rows = [["Name", proper(t.staffName)],["Employee Code", t.employeeCode],["Application ID", t.applicationId],["PPO No.", t.ppoNo],["School User ID", t.currentUserId]]
+    .filter(r=>r[1]);
+  $("#statusIds").innerHTML = rows.length
+    ? `<div class="bn-guide"><h4>Selected record — copy &amp; paste into the portal</h4>` +
+      rows.map(r=>`<div class="id-chip"><b>${r[0]}</b><code>${escapeHtml(r[1])}</code><button class="btn btn-ghost dk" data-copy="${escapeHtml(r[1])}">Copy</button></div>`).join("") + `</div>`
+    : `<p class="hint">Select or save a pensioner record to see its Application ID / Employee Code / PPO No. here.</p>`;
+  $$("#statusIds [data-copy]").forEach(b=>b.addEventListener("click", async ()=>{
+    const ok = await copyText(b.dataset.copy); b.textContent = ok ? "Copied ✓" : "Failed";
+    setTimeout(()=>{ b.textContent="Copy"; }, 1500);
+  }));
+  $("#statusModal").hidden = false;
+}
+["btnPensionStatus","btnPensionStatusSide","btnPensionGuide"].forEach(id=>$("#"+id).addEventListener("click", ()=>{
+  if(id==="btnPensionStatus") { openStatusModal(); } else openStatusModal();
+}));
+$("#btnStatusClose").addEventListener("click", ()=>{ $("#statusModal").hidden = true; });
+$("#statusModal").addEventListener("click", e=>{ if(e.target.id==="statusModal") $("#statusModal").hidden = true; });
+$("#btnOpenEpension").addEventListener("click", openEpension);
+$("#btnGuideWA").addEventListener("click", ()=>{ window.open("https://wa.me/?text=" + encodeURIComponent(bengaliGuideText()), "_blank", "noopener"); });
+$("#btnCopyGuide").addEventListener("click", async ()=>{
+  const b=$("#btnCopyGuide"); b.textContent = (await copyText(bengaliGuideText())) ? "Copied ✓" : "Copy failed";
+  setTimeout(()=>{ b.textContent="Copy Bengali guide"; }, 1800);
+});
+
+/* =========================================================================
+   IMPORT FROM SB — reads the shared Firestore document used by the SB app
+   (tfhs / ropaPayFixation -> records{ NAME: {fields, casPriorSchools, masterMlEntries ...} })
+   ========================================================================= */
+let sbRecords = {};
+let fsdb = null;
+function getFs(){ if(!fsdb) fsdb = firebase.firestore(); return fsdb; }
+
+function sbDesignation(raw){
+  const u = String(raw||"").trim().toUpperCase();
+  if(!u) return "";
+  if(DESIGNATIONS.includes(u)) return u;
+  const map = {"ASSISTANT HEADMASTER":"AHM","ASSISTANT HEADMISTRESS":"AHM","HEAD CLERK":"CLERK","CLASS-IV EMPLOYEE":"GR-D STAFF","LABORATORY ATTENDANT":"GR-D STAFF","MANUAL WORKER":"GR-D STAFF","GROUP-D STAFF":"GR-D STAFF","LABORATORY ASSISTANT":"GR-D STAFF"};
+  return map[u] || "";
+}
+function sbLeaveDays(entries){
+  const tot = {avg:0, half:0, commuted:0, lwp:0};
+  (entries||[]).forEach(e=>{
+    let n = Number(e.qty)||0;
+    if(!n && e.from && e.to){ n = Math.round((new Date(e.to)-new Date(e.from))/86400000)+1; }
+    if(!(n>0)) return;
+    if(e.type==="avg") tot.avg += n;
+    else if(e.type==="half") tot.half += n;
+    else if(e.type==="commuted") tot.commuted += n;
+    else if(e.type==="lwp_effect" || e.type==="lwp_noeffect") tot.lwp += n;
+  });
+  return tot;
+}
+function sbToPension(rec){
+  const f = rec.fields || {};
+  const o = {};
+  const put = (k,v)=>{ if(v!==undefined && v!==null && String(v).trim()!=="") o[k]=String(v).trim(); };
+  put("staffName", (rec.staffName || f.staffName || "").toUpperCase());
+  const des = sbDesignation(f.designation); put("designation", des);
+  put("dob", f.dob);
+  put("dojFirst", f.doj);
+  put("dojThisSchool", f.casDojCurrentSchool || f.doj);
+  put("schoolName", f.schoolName);
+  put("schoolAddress", f.casSchoolAddress);
+  const sd = String(f.casSubDivision||"").trim().toUpperCase();
+  if(["KHATRA","BANKURA","BISHNUPUR"].includes(sd)) o.schoolSubDiv = sd;
+  put("qualification", f.casQualification);
+  if(f.casSex==="F") o.gender="FEMALE"; else if(f.casSex==="M") o.gender="MALE";
+  const hs = String(f.casHoiStatus||"").trim().toUpperCase();
+  if(HOI_STATUSES.includes(hs)) o.hoiStatus = hs;
+  if(f.casGovType==="Administrator") o.adminStatus="Administrator"; else if(f.casGovType==="MC") o.adminStatus="President [M.C.]";
+  const mob = String(f.casContactNo||"").match(/\d{10}/); if(mob) o.hoiMobile = mob[0];
+  put("schoolMail", f.casEmail);
+
+  // previous schools (earliest first)
+  const priors = (rec.casPriorSchools||[]).filter(s=>s && s.name).slice().sort((a,b)=>String(a.doj||"").localeCompare(String(b.doj||"")));
+  const thisDoj = o.dojThisSchool || o.dojFirst || "";
+  if(priors.length){
+    o.prevSchool1 = priors[0].name; if(des) o.prevSchoolPost1 = des;
+    if(priors[1]){ o.prevSchool2 = priors[1].name; if(des) o.prevSchoolPost2 = des; o.dojPrevSchool2 = priors[1].doj || thisDoj; }
+    else o.dojPrevSchool2 = thisDoj;
+    if(!o.dojFirst && priors[0].doj) o.dojFirst = priors[0].doj;
+  } else if(f.casPrevSchool && String(f.casPrevSchool).trim()){
+    o.prevSchool1 = String(f.casPrevSchool).trim(); if(des) o.prevSchoolPost1 = des;
+    o.dojPrevSchool2 = thisDoj;
+  } else {
+    if(!o.dojFirst) o.dojFirst = thisDoj;
+    o.dojPrevSchool2 = o.dojFirst || thisDoj;
+  }
+  // leave days from the SB leave register
+  const L = sbLeaveDays(rec.masterMlEntries);
+  o.medicalLeave = String(L.avg + L.commuted);
+  o.halfPayLeave = String(L.half);
+  o.extraOrdinaryLeave = String(L.lwp);
+  return o;
+}
+
+function sbErr(m){ $("#sbErr").textContent = m || ""; }
+async function loadSbRecords(){
+  sbErr("");
+  $("#sbList").innerHTML = `<div style="padding:14px;color:var(--muted);">Loading from SB…</div>`;
+  try{
+    const snap = await getFs().collection("tfhs").doc("ropaPayFixation").get();
+    sbRecords = (snap.exists && snap.data().records && typeof snap.data().records==="object") ? snap.data().records : {};
+    renderSbList();
+  }catch(e){
+    console.warn("SB load failed", e);
+    $("#sbList").innerHTML = "";
+    sbErr("Could not read SB data: " + (e.code==="permission-denied" ? "permission denied — log in first, then press Refresh." : (e.message||e)));
+  }
+}
+function renderSbList(){
+  const q = ($("#sbSearch").value||"").trim().toLowerCase();
+  const keys = Object.keys(sbRecords).sort((a,b)=>a.localeCompare(b)).filter(k=>!q || k.toLowerCase().includes(q) || String((sbRecords[k]||{}).staffName||"").toLowerCase().includes(q));
+  if(!keys.length){ $("#sbList").innerHTML = `<div style="padding:14px;color:var(--muted);">No employees found in SB.</div>`; return; }
+  $("#sbList").innerHTML = keys.map(k=>{
+    const r = sbRecords[k]||{}, f = r.fields||{};
+    const dup = isDuplicateOfSaved({staffName:r.staffName||k, dob:f.dob});
+    return `<div class="sb-row"><div class="info"><span class="nm">${escapeHtml(proper(r.staffName||k))}${dup?' <span class="inbox-row tag dup" style="display:inline;padding:1px 6px;border-radius:10px;background:#fbe6e4;color:var(--danger);font-size:10px;">already in portal</span>':''}</span>
+      <span class="meta">${escapeHtml(f.designation||"")} · DOB ${escapeHtml(f.dob?fmtDate(f.dob,"dd-mm-yyyy"):"-")} · DOJ ${escapeHtml(f.doj?fmtDate(f.doj,"dd-mm-yyyy"):"-")}</span></div>
+      <div class="acts"><button class="btn btn-primary" data-sbnew="${escapeHtml(k)}">New record</button>
+      <button class="btn btn-ghost dk" data-sbfill="${escapeHtml(k)}">Fill current form</button></div></div>`;
+  }).join("");
+  $$("[data-sbnew]").forEach(b=>b.addEventListener("click", ()=>sbImport(b.dataset.sbnew,"new")));
+  $$("[data-sbfill]").forEach(b=>b.addEventListener("click", ()=>sbImport(b.dataset.sbfill,"fill")));
+}
+async function sbImport(key, mode){
+  if(!guardEdit()) return;
+  const r = sbRecords[key]; if(!r){ sbErr("Employee not found."); return; }
+  const mapped = sbToPension(r);
+  if(mode==="new"){
+    if(dirty && !confirm("You have unsaved changes on the current record. Discard them and open the imported employee?")) return;
+    const rec = Object.assign(defaultRecord(), mapped);
+    rec.id = newId(); rec.savedAt = new Date().toISOString();
+    await saveRecord(rec);
+    const ids = await loadIndex(); if(!ids.includes(rec.id)){ ids.push(rec.id); await saveIndex(ids); }
+    current = rec; originalSnapshot = JSON.stringify(current); dirty = false; activeTab = "form";
+    await refreshRecordList(); render();
+    flashStatus("Imported "+proper(rec.staffName)+" from SB. Please check and add pay details.", "ok");
+  } else {
+    Object.keys(mapped).forEach(k=>{ current[k] = mapped[k]; });
+    dirty = true; activeTab = "form"; render();
+    flashStatus("SB data filled into the current form. Press Save Record to keep it.", "ok");
+  }
+  $("#sbModal").hidden = true;
+}
+$("#btnImportSB").addEventListener("click", ()=>{
+  if(!guardEdit()) return;
+  $("#sbModal").hidden = false; loadSbRecords();
+});
+$("#btnSbClose").addEventListener("click", ()=>{ $("#sbModal").hidden = true; });
+$("#sbModal").addEventListener("click", e=>{ if(e.target.id==="sbModal") $("#sbModal").hidden = true; });
+$("#btnSbRefresh").addEventListener("click", loadSbRecords);
+$("#sbSearch").addEventListener("input", renderSbList);
+
+/* =========================================================================
+   MOBILE: scale the A4 paper preview to fit the screen width
+   ========================================================================= */
+function fitPreviewToScreen(){
+  const wrap = document.querySelector(".doc-preview-wrap");
+  const pages = $$(".print-area .page");
+  if(!wrap || !pages.length) return;
+  const mobile = window.matchMedia("(max-width:860px)").matches;
+  pages.forEach(pg=>{
+    if(!mobile){ pg.style.zoom = ""; return; }
+    pg.style.zoom = "";
+    const natural = pg.getBoundingClientRect().width || pg.offsetWidth;
+    const avail = wrap.clientWidth - 16;
+    if(natural > 0 && avail > 0 && natural > avail) pg.style.zoom = (avail/natural).toFixed(3);
+  });
+}
+(function(){
+  const baseRender = render;
+  render = function(){ baseRender(); if(activeTab==="docs") requestAnimationFrame(fitPreviewToScreen); };
+  window.addEventListener("resize", fitPreviewToScreen);
+  window.addEventListener("beforeprint", ()=>{ $$(".print-area .page").forEach(pg=>pg.style.zoom=""); });
+  window.addEventListener("afterprint", fitPreviewToScreen);
+})();
 
 (async function init(){
   await refreshRecordList();
