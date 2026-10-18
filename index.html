@@ -364,6 +364,61 @@
   }
   @media screen and (max-width:420px){ .summary-grid{grid-template-columns:1fr;} }
   @media print{ .ps-bar,#statusModal,#sbModal{display:none !important;} .page{zoom:1 !important;} }
+
+  /* ---------- Professional dashboard ---------- */
+  .dash-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px;}
+  .dash-head h2{margin:0;font-size:21px;color:var(--navy);letter-spacing:.2px;}
+  .dash-head .dsub{font-size:12.5px;color:var(--muted);margin-top:2px;}
+  .dash-head .dsub a{color:var(--navy);}
+  .dash-actions{display:flex;gap:8px;flex-wrap:wrap;}
+  .dash-btn{background:#fff;color:var(--navy);border:1px solid var(--line);}
+  .dash-btn:hover{background:#eef3f7;}
+  .btn-xs{padding:6px 11px;font-size:12px;border-radius:6px;}
+  .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:12px;margin-bottom:18px;}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px 13px 18px;position:relative;overflow:hidden;box-shadow:0 1px 2px rgba(18,40,64,.06);}
+  .kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--navy);}
+  .kpi.k-new::before{background:#1f7ae0;} .kpi.k-re::before{background:#e0a100;} .kpi.k-ok::before{background:var(--ok);} .kpi.k-gold::before{background:var(--gold);}
+  .kpi .lbl{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);font-weight:700;}
+  .kpi .num{font-size:30px;font-weight:800;color:var(--navy);line-height:1.15;margin-top:3px;}
+  .kpi .ksub{font-size:11.5px;color:var(--muted);margin-top:1px;}
+  .kpi.hot{animation:kpiGlow 1.6s ease-in-out infinite;}
+  @keyframes kpiGlow{0%,100%{box-shadow:0 1px 2px rgba(18,40,64,.06);}50%{box-shadow:0 0 0 4px rgba(224,161,0,.28);}}
+  .panel{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 1px 2px rgba(18,40,64,.06);margin-bottom:16px;overflow:hidden;}
+  .panel-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid #e6e9ed;background:linear-gradient(90deg,#f4f7fb,#fff);}
+  .panel-h h3{margin:0;font-size:14px;color:var(--navy);flex:1 1 200px;}
+  .panel-empty{padding:20px 18px;color:var(--muted);font-size:13px;line-height:1.6;}
+  .panel-empty.good{color:var(--ok);font-weight:600;}
+  .two-col{display:grid;grid-template-columns:1.35fr 1fr;gap:16px;align-items:start;}
+  @media (max-width:1050px){ .two-col{grid-template-columns:1fr;} }
+  .dtable{width:100%;border-collapse:collapse;font-size:12.5px;}
+  .dtable th{text-align:left;padding:8px 14px;font-size:10.5px;text-transform:uppercase;color:var(--muted);letter-spacing:.4px;border-bottom:1px solid #e6e9ed;background:#fafbfc;}
+  .dtable td{padding:9px 14px;border-bottom:1px solid #f0f2f5;vertical-align:middle;}
+  .dtable tr:last-child td{border-bottom:none;}
+  .dtable tr.click{cursor:pointer;} .dtable tr.click:hover td{background:#f6f9fc;}
+  .dtable .nm{font-weight:700;color:var(--navy);}
+  .dtable .mt{font-size:11px;color:var(--muted);}
+  .pill{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:99px;background:#eef1f5;color:var(--navy);white-space:nowrap;}
+  .pill.ok{background:#e2f3e8;color:var(--ok);} .pill.wait{background:#fff3d6;color:#8a5a00;} .pill.new{background:#dcebff;color:#0b4fa8;}
+  .pill.re{background:#ffe3a3;color:#7a4b00;} .pill.sup{background:#eceff3;color:#6b7683;} .pill.soon{background:#fbe6e4;color:var(--danger);}
+  .al-row{display:flex;align-items:center;gap:12px;padding:11px 16px;border-bottom:1px solid #f0f2f5;flex-wrap:wrap;font-size:12.5px;}
+  .al-row:last-child{border-bottom:none;}
+  .al-row .al-main{flex:1 1 240px;min-width:0;}
+  .al-row .nm{font-weight:700;color:var(--navy);font-size:13.5px;margin-right:6px;}
+  .al-row .meta{display:block;font-size:11px;color:var(--muted);margin-top:2px;}
+  .al-row.is-re{background:linear-gradient(90deg,#fffaf0,#fff);}
+  .al-row .chk{width:auto;margin:0;}
+  .nb{display:inline-block;min-width:20px;padding:1px 6px;margin-left:6px;border-radius:99px;background:var(--danger);color:#fff;font-size:11px;font-weight:800;text-align:center;}
+  .nb[hidden]{display:none;}
+  .inbox-alert{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:9px 22px;background:#fff1f0;border-bottom:1px solid #e3a39c;}
+  .inbox-alert[hidden]{display:none;}
+  .ia-flash{font-weight:800;font-size:13px;color:#fff;background:var(--danger);padding:6px 14px;border-radius:20px;animation:psFlash 1.1s ease-in-out infinite;}
+  .ia-names{font-size:12.5px;color:#7a2b25;flex:1 1 240px;}
+  @media (prefers-reduced-motion: reduce){ .kpi.hot,.ia-flash{animation:none;} }
+  .diff-wrap{overflow:auto;border:1px solid var(--line);border-radius:8px;flex:1;min-height:120px;}
+  .diff-wrap .dtable td.old{color:#8a3b34;background:#fdf3f2;word-break:break-word;}
+  .diff-wrap .dtable td.new{color:#1e6a3f;background:#f1faf4;font-weight:600;word-break:break-word;}
+  .diff-wrap .dtable td.cl{font-size:10.5px;color:var(--muted);}
+  .diff-note{font-size:11.5px;color:var(--muted);margin:8px 0 0;line-height:1.5;}
 </style>
   <!-- SheetJS: browser-side Excel (.xls/.xlsx) reader -->
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
@@ -382,6 +437,7 @@
       <h1>Pension Portal</h1>
       <div class="sub">e-Pension Application &amp; Certificate Generator</div>
     </div>
+    <button class="btn btn-ghost btn-block" id="btnDash">🏠 Dashboard</button>
     <button class="btn btn-primary btn-block" id="btnNew">+ New Pensioner Record</button>
     <button class="btn btn-ghost btn-block" id="btnLoadSample">↺ Load Sample Record</button>
     <div style="display:flex;gap:6px;">
@@ -393,7 +449,7 @@
     <button class="btn btn-ghost btn-block" id="btnImportExcel">⬆ Import Excel (DATA)</button>
     <input type="file" id="fileImportExcel" accept=".xls,.xlsx,.xlsm,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" style="display:none;">
     <button class="btn btn-ghost btn-block" id="btnQuickShare">🔗 Share Link &amp; Guide (Data Collection)</button>
-    <button class="btn btn-primary btn-block" id="btnFetchInbox">📥 Fetch Submissions (Google Sheet)</button>
+    <button class="btn btn-primary btn-block" id="btnFetchInbox">📥 Fetch Submissions (Google Sheet)<span class="nb" id="inboxBadge" hidden>0</span></button>
     <button class="btn btn-ghost btn-block" id="btnImportSB">📚 Import from SB (choose employee)</button>
     <button class="btn btn-status btn-block" id="btnPensionStatusSide">🔎 Check Pension Status (e-Pension)</button>
     <input class="search-box" id="searchBox" placeholder="Search saved records...">
@@ -427,8 +483,14 @@
       <button class="btn btn-status" id="btnPensionStatus">🔎 Check Pension Status ↗</button>
       <button class="btn btn-bn bn" id="btnPensionGuide">📖 বাংলা গাইড</button>
     </div>
+    <div class="inbox-alert" id="inboxAlertBar" hidden>
+      <span class="ia-flash" id="iaFlash"></span>
+      <span class="ia-names" id="iaNames"></span>
+      <button class="btn btn-primary btn-xs" id="btnIaOpen" type="button">Open Dashboard</button>
+    </div>
     <div class="tabs">
-      <div class="tab active" data-tab="form">1. Enter Data</div>
+      <div class="tab active" data-tab="dash">🏠 Dashboard</div>
+      <div class="tab" data-tab="form">1. Enter Data</div>
       <div class="tab" data-tab="summary">2. Computed Summary</div>
       <div class="tab" data-tab="docs">3. Documents / Print</div>
     </div>
@@ -447,7 +509,7 @@
   <div class="modal-box wide">
     <button class="modal-close" id="btnInboxClose" aria-label="Close">✕</button>
     <h3>Pension Data Submissions</h3>
-    <p class="sub">Submissions sent by staff through the Quick Share form (stored in Google Sheet via Apps Script).</p>
+    <p class="sub">Submissions sent by staff through the Quick Share form. <b>NEW</b> = first submission, <b>RESUBMIT</b> = staff corrected and sent again (use <i>Review &amp; Re-import</i> to update the saved record).</p>
     <div class="inbox-tools">
       <button class="btn btn-ghost" style="color:var(--navy);border-color:var(--line);" id="btnInboxRefresh">↻ Refresh</button>
       <label style="margin:0;display:flex;gap:5px;align-items:center;font-weight:600;"><input type="checkbox" id="inboxShowDone"> Show already imported</label>
@@ -465,6 +527,24 @@
     <div class="modal-actions">
       <button class="btn btn-ghost" style="color:var(--navy);border-color:var(--line);" id="btnInboxSelAll">Select all new</button>
       <button class="btn btn-primary" id="btnInboxImport">Import Selected</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- RE-IMPORT REVIEW MODAL -->
+<div class="modal-overlay" id="diffModal" hidden>
+  <div class="modal-box wide">
+    <button class="modal-close" id="btnDiffClose" aria-label="Close">✕</button>
+    <h3 id="diffTitle">Review update</h3>
+    <p class="sub" id="diffSub"></p>
+    <div class="diff-wrap" id="diffBody"></div>
+    <p class="diff-note" id="diffNote"></p>
+    <div class="modal-err" id="diffErr"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost dk" id="btnDiffAll" type="button">Tick all</button>
+      <button class="btn btn-ghost dk" id="btnDiffCancel" type="button">Cancel</button>
+      <button class="btn btn-primary" id="btnDiffApply" type="button">Apply update</button>
     </div>
   </div>
 </div>
@@ -495,16 +575,17 @@
           <li>Enter Commutation as a whole number (for 40% type <b>40</b>, not 0.4).</li>
           <li>Tap <b>Submit Details</b> once and wait for the green tick with a <b>Reference number</b>. Take a screenshot of it.</li>
           <li>If an error shows, your entries are kept. Check internet and tap Submit again.</li>
+          <li>Found a mistake later? Open the same link on the same phone, correct the field and tap <b>Resubmit Updated Details</b>.</li>
         </ol>
       </div>
       <div class="guide-box">
         <h4>Guide for you (office)</h4>
         <ol>
-          <li>Log in, click <b>📥 Fetch Submissions</b> and then <b>Refresh</b>.</li>
-          <li>Tick the records to bring in (ones marked <i>already in portal</i> are left unticked) and click <b>Import Selected</b>.</li>
-          <li>Open each imported record, check the data, add anything missing and click <b>Save Record</b>.</li>
-          <li>Go to <b>3. Documents / Print</b> to print the pension papers.</li>
-          <li>Imported rows are marked IMPORTED in the Sheet, so they are not imported twice.</li>
+          <li>Log in. The <b>🏠 Dashboard</b> shows a red alert with the employee name for every <b>NEW</b> or <b>RESUBMIT</b> submission waiting.</li>
+          <li><b>NEW</b>: click <b>Import</b> (or tick several in <b>📥 Fetch Submissions</b> and click <b>Import Selected</b>).</li>
+          <li><b>RESUBMIT</b>: click <b>Review &amp; Re-import</b>, check the changed fields (old → new) and click <b>Apply update</b>. The saved record is updated, no duplicate is created.</li>
+          <li>Open the record, check the data, add anything missing and click <b>Save Record</b>; then print from <b>3. Documents / Print</b>.</li>
+          <li>Handled rows are marked IMPORTED in the Sheet, so they are not imported twice.</li>
         </ol>
       </div>
     </div>
@@ -2224,7 +2305,7 @@ function openLoginModal(){
 }
 function closeLoginModal(){ $("#loginModal").hidden = true; }
 
-fbAuth.onAuthStateChanged(user=>{ updateAuthUI(user); });
+fbAuth.onAuthStateChanged(user=>{ updateAuthUI(user); if(typeof pollInbox === "function") pollInbox(); });
 
 $("#btnLoginOpen").addEventListener("click", openLoginModal);
 $("#btnLoginClose").addEventListener("click", closeLoginModal);
@@ -2261,7 +2342,7 @@ $("#btnLogout").addEventListener("click", async ()=>{
 let allRecords = [];
 let current = defaultRecord();
 let originalSnapshot = JSON.stringify(current);
-let activeTab = "form";
+let activeTab = "dash";
 let activeDoc = "COVER";
 let dirty = false;
 
@@ -2305,18 +2386,21 @@ async function selectRecord(id){
 }
 
 function render(){
-  $("#topTitle").textContent = current.id ? (proper(current.staffName)||"(unnamed)") + " — " + (current.designation||"") : "New Pensioner Record";
-  $("#btnDuplicate").style.display = current.id ? "inline-block" : "none";
-  $("#btnDelete").style.display = current.id ? "inline-block" : "none";
+  const onDash = activeTab === "dash";
+  $("#topTitle").textContent = onDash ? "Dashboard — Pension Data Collection" : (current.id ? (proper(current.staffName)||"(unnamed)") + " — " + (current.designation||"") : "New Pensioner Record");
+  $("#btnDuplicate").style.display = (!onDash && current.id) ? "inline-block" : "none";
+  $("#btnDelete").style.display = (!onDash && current.id) ? "inline-block" : "none";
   $$(".tab").forEach(t => t.classList.toggle("active", t.dataset.tab===activeTab));
   $("#formActions").style.display = activeTab==="form" ? "flex" : "none";
   renderRecordList();
 
   const content = $("#content");
-  if(activeTab==="form") content.innerHTML = renderForm();
+  if(activeTab==="dash") content.innerHTML = renderDashboard();
+  else if(activeTab==="form") content.innerHTML = renderForm();
   else if(activeTab==="summary") content.innerHTML = renderSummary();
   else content.innerHTML = renderDocs();
 
+  if(activeTab==="dash") wireDashboard();
   if(activeTab==="form") wireFormInputs();
   if(activeTab==="docs") wireDocButtons();
   updateSaveStatus();
@@ -2850,47 +2934,192 @@ async function inboxCall(params, body){
   return j;
 }
 
-function isDuplicateOfSaved(p){
-  const code = String(p.employeeCode||"").trim().toUpperCase();
-  const name = String(p.staffName||"").trim().toUpperCase();
-  return allRecords.some(r =>
-    (code && String(r.employeeCode||"").trim().toUpperCase()===code) ||
-    (name && String(r.staffName||"").trim().toUpperCase()===name && String(r.dob||"")===String(p.dob||"")));
+
+/* ---------- inbox model: NEW vs RESUBMIT, per employee ---------- */
+const OFFICE_URL = "https://prabirdangar-web.github.io/wb_pen/";
+const BASE_TITLE = document.title;
+const INBOX_IGNORE = new Set(["id","savedAt","__hraSet","website","importedSubmissionIds"]);
+let inboxState = {phase:"locked"};
+let inboxBusy = false;
+
+function cleanPayload(p){
+  const o = {};
+  Object.keys(p||{}).forEach(k=>{ if(k.charAt(0)==="_" || INBOX_IGNORE.has(k)) return; o[k] = p[k]; });
+  return o;
+}
+const normTxt = s => String(s==null?"":s).trim().replace(/\s+/g," ").toUpperCase();
+function recMatches(r, p){
+  const code = normTxt(p.employeeCode), name = normTxt(p.staffName);
+  return !!((code && normTxt(r.employeeCode)===code) || (name && normTxt(r.staffName)===name && String(r.dob||"")===String(p.dob||"")));
+}
+function isDuplicateOfSaved(p){ return allRecords.some(r=>recMatches(r,p)); }
+
+function buildInboxModel(){
+  const items = inboxItems.slice().sort((a,b)=>(Date.parse(a.timestamp)||0)-(Date.parse(b.timestamp)||0));
+  const parent = items.map((_,i)=>i);
+  const find = i=>{ while(parent[i]!==i){ parent[i]=parent[parent[i]]; i=parent[i]; } return i; };
+  const union = (a,b)=>{ a=find(a); b=find(b); if(a!==b) parent[b]=a; };
+  const idIdx = {}; items.forEach((x,i)=>{ idIdx[x.submissionId]=i; });
+  const byKey = {};
+  items.forEach((x,i)=>{
+    const p = x.payload||{};
+    [p._prevSubmissionId, p._firstSubmissionId].forEach(id=>{ if(id && idIdx[id]!==undefined) union(i, idIdx[id]); });
+    const code = normTxt(p.employeeCode), name = normTxt(p.staffName), dob = String(p.dob||"");
+    const keys = []; if(code) keys.push("C:"+code); if(name && dob) keys.push("N:"+name+"|"+dob);
+    keys.forEach(k=>{ if(byKey[k]!==undefined) union(i, byKey[k]); else byKey[k]=i; });
+  });
+  const groups = {};
+  items.forEach((x,i)=>{ (groups[find(i)] = groups[find(i)] || []).push(x); });
+
+  Object.keys(groups).forEach(g=>{
+    const m = groups[g];
+    const sids = m.map(x=>x.submissionId);
+    let match = allRecords.find(r=>Array.isArray(r.importedSubmissionIds) && r.importedSubmissionIds.some(s=>sids.includes(s))) || null;
+    for(let k=m.length-1; k>=0 && !match; k--) match = allRecords.find(r=>recMatches(r, m[k].payload||{})) || null;
+    let lastPending = -1;
+    m.forEach((x,k)=>{ if(x.status!=="IMPORTED") lastPending = k; });
+    m.forEach((x,k)=>{
+      x._rev = parseInt((x.payload||{})._revision,10) || (k+1);
+      if(x.status==="IMPORTED") x._state = "imported";
+      else if(k===lastPending && k===m.length-1) x._state = "pending";
+      else x._state = "superseded";
+      const earlierImported = m.slice(0,k).some(y=>y.status==="IMPORTED");
+      const isRe = (x.payload||{})._resubmit==="YES" || k>0;
+      x._kind = (earlierImported || (match && isRe)) ? "RESUBMIT" : "NEW";
+      x._early = x._kind==="NEW" && isRe;   // corrected before the first import
+      x._match = (x._state==="pending") ? match : null;
+      x._supersedes = (x._state==="pending") ? m.slice(0,k).filter(y=>y.status!=="IMPORTED").map(y=>y.submissionId) : [];
+    });
+  });
+  return items;
+}
+function pendingItems(){ return buildInboxModel().filter(x=>x._state==="pending").sort((a,b)=>(Date.parse(b.timestamp)||0)-(Date.parse(a.timestamp)||0)); }
+
+/* ---------- field labels & diff ---------- */
+let FIELD_LABELS = null;
+function labelFor(id){
+  if(!FIELD_LABELS){
+    FIELD_LABELS = {};
+    SECTIONS.forEach(s=>s.fields.forEach(f=>{ FIELD_LABELS[f.id] = String(f.label).replace(/&amp;/g,"&"); }));
+  }
+  if(FIELD_LABELS[id]) return FIELD_LABELS[id];
+  const m = /^edu(Madhyamik|Hs|Grad|PG|BEd)(Subject|Board|Year|Pct|Remarks)$/.exec(id);
+  if(m){
+    const deg = {Madhyamik:"Madhyamik",Hs:"Higher Secondary",Grad:"Graduate",PG:"Post Graduate",BEd:"B.Ed"}[m[1]];
+    const col = {Subject:"Subject",Board:"Board / University",Year:"Year of passing",Pct:"%",Remarks:"Remarks"}[m[2]];
+    return deg + " — " + col;
+  }
+  return id.replace(/([A-Z])/g," $1").replace(/^./,c=>c.toUpperCase());
+}
+function showVal(v){
+  v = String(v==null?"":v);
+  if(/^\d{4}-\d{2}-\d{2}/.test(v)){ const d = fmtDate(v.slice(0,10),"dd-mm-yyyy"); if(d) return d; }
+  return v;
+}
+function buildDiff(rec, p){
+  const rows = [], cp = cleanPayload(p);
+  Object.keys(cp).forEach(k=>{
+    let nv = String(cp[k]==null?"":cp[k]).trim(), ov = String(rec[k]==null?"":rec[k]).trim();
+    if(k==="schoolMail" && nv==="@gmail.com") nv = "";
+    if(nv===ov) return;
+    if(nv!=="" && ov!=="" && !isNaN(nv) && !isNaN(ov) && parseFloat(nv)===parseFloat(ov)) return;
+    rows.push({key:k, label:labelFor(k), oldV:ov, newV:nv, cleared:nv===""});
+  });
+  return rows;
 }
 
-function renderInbox(){
-  const showDone = $("#inboxShowDone").checked;
-  const rows = inboxItems.filter(x => showDone || x.status !== "IMPORTED");
-  if(!rows.length){ $("#inboxList").innerHTML = `<div style="padding:14px;color:var(--muted);">No ${showDone?"":"new "}submissions.</div>`; return; }
-  $("#inboxList").innerHTML = rows.map(x=>{
-    const done = x.status==="IMPORTED";
-    const dup = !done && isDuplicateOfSaved(x.payload||{});
-    const when = x.timestamp ? new Date(x.timestamp).toLocaleString("en-IN") : "";
-    return `<label class="inbox-row"><input type="checkbox" class="inbox-chk" value="${escapeHtml(x.submissionId)}" ${done?"disabled":(dup?"":"checked")}>
-      <span><span class="nm">${escapeHtml(proper((x.payload||{}).staffName||"(no name)"))}</span>
-      ${done?'<span class="tag done">imported</span>':(dup?'<span class="tag dup">already in portal</span>':'<span class="tag">new</span>')}<br>
-      <span class="meta">${escapeHtml((x.payload||{}).designation||"")} · Code ${escapeHtml((x.payload||{}).employeeCode||"-")} · ${escapeHtml(when)}</span></span></label>`;
-  }).join("");
+/* ---------- rows (shared by dashboard and the inbox window) ---------- */
+function whenText(ts){
+  const t = Date.parse(ts); if(!t) return "";
+  return new Date(t).toLocaleString("en-IN",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"});
+}
+function tagHtml(x){
+  if(x._state==="imported") return '<span class="pill ok">imported</span>';
+  if(x._state==="superseded") return '<span class="pill sup">superseded</span>';
+  if(x._kind==="RESUBMIT") return '<span class="pill re">RESUBMIT · v'+x._rev+'</span>';
+  return '<span class="pill new">NEW'+(x._early?' · updated v'+x._rev:'')+'</span>';
+}
+function inboxRowHtml(x, mode){
+  const p = x.payload||{};
+  const pend = x._state==="pending";
+  const re = pend && x._kind==="RESUBMIT";
+  let act = "", chk = "";
+  if(pend){
+    if(x._match){
+      const n = buildDiff(x._match, p).filter(r=>!r.cleared).length;
+      act = `<button class="btn btn-primary btn-xs" data-act="reimport" data-sid="${escapeHtml(x.submissionId)}">🔄 Review &amp; Re-import${re?` (${n} change${n===1?"":"s"})`:""}</button>`;
+    } else if(mode==="modal"){
+      chk = `<input type="checkbox" class="inbox-chk chk" value="${escapeHtml(x.submissionId)}" checked>`;
+    } else {
+      act = `<button class="btn btn-primary btn-xs" data-act="import" data-sid="${escapeHtml(x.submissionId)}">⬇ Import</button>`;
+    }
+  }
+  const sub = [p.designation, proper(p.schoolName||""), p.employeeCode?("Code "+p.employeeCode):"", whenText(x.timestamp)].filter(Boolean).join(" · ");
+  const inPortal = pend && x._match && x._kind==="NEW" ? ' <span class="pill wait">matches saved record</span>' : "";
+  return `<div class="al-row ${re?"is-re":""}">${chk}<div class="al-main"><span class="nm">${escapeHtml(proper(p.staffName||"(no name)"))}</span>${tagHtml(x)}${inPortal}<span class="meta">${escapeHtml(sub)}</span></div>${act}</div>`;
 }
 
-async function loadInbox(){
-  inboxErr(""); $("#inboxList").innerHTML = `<div style="padding:14px;color:var(--muted);">Loading… (the first call after a pause can take up to 15 seconds)</div>`;
+/* ---------- alert plumbing: badge, red bar, tab title ---------- */
+function refreshInboxUi(){
+  const pend = (inboxState.phase==="ok" && loggedIn) ? pendingItems() : [];
+  const nNew = pend.filter(x=>x._kind==="NEW").length, nRe = pend.filter(x=>x._kind==="RESUBMIT").length, total = nNew + nRe;
+  const bd = $("#inboxBadge"); bd.textContent = total; bd.hidden = !total;
+  const bar = $("#inboxAlertBar");
+  if(total){
+    const names = pend.slice(0,4).map(x=>proper((x.payload||{}).staffName||"(no name)")).join(", ") + (pend.length>4 ? " +"+(pend.length-4)+" more" : "");
+    $("#iaFlash").textContent = "🔔 " + [nNew?nNew+" NEW":"", nRe?nRe+" RESUBMIT":""].filter(Boolean).join(" + ") + " waiting";
+    $("#iaNames").textContent = names + (nRe ? " — resubmitted data is waiting to be re-imported." : " — waiting to be imported.");
+    bar.hidden = false;
+  } else bar.hidden = true;
+  document.title = (total ? "("+total+") " : "") + BASE_TITLE;
+  if(activeTab==="dash"){
+    const sc = $("#content").scrollTop; render(); $("#content").scrollTop = sc;
+  }
+  if(!$("#inboxModal").hidden) renderInbox();
+}
+
+async function pollInbox(){
+  if(!loggedIn){ inboxState = {phase:"locked"}; inboxItems = []; refreshInboxUi(); return; }
+  if(!inboxUrl() || !inboxKey()){ inboxState = {phase:"nokey"}; refreshInboxUi(); return; }
+  if(inboxBusy) return;
+  inboxBusy = true;
+  if(inboxState.phase!=="ok"){ inboxState = {phase:"loading"}; refreshInboxUi(); }
   try{
     const j = await inboxCall({action:"list"});
     inboxItems = j.items || [];
-    renderInbox();
+    inboxState = {phase:"ok", at:new Date()};
   }catch(e){
-    $("#inboxList").innerHTML = "";
-    inboxErr("Could not load: " + (e.message||e));
-  }
+    inboxState = {phase:"error", err:(e.message||String(e))};
+  }finally{ inboxBusy = false; }
+  refreshInboxUi();
+}
+setInterval(()=>{ if(!document.hidden) pollInbox(); }, 120000);
+document.addEventListener("visibilitychange", ()=>{ if(!document.hidden) pollInbox(); });
+
+/* ---------- inbox window ---------- */
+function renderInbox(){
+  const showDone = $("#inboxShowDone").checked;
+  const rows = buildInboxModel().filter(x=> showDone ? true : x._state==="pending").sort((a,b)=>(Date.parse(b.timestamp)||0)-(Date.parse(a.timestamp)||0));
+  if(!rows.length){ $("#inboxList").innerHTML = `<div style="padding:14px;color:var(--muted);">No ${showDone?"":"waiting "}submissions.</div>`; return; }
+  $("#inboxList").innerHTML = rows.map(x=>inboxRowHtml(x,"modal")).join("");
+}
+async function loadInbox(){
+  inboxErr("");
+  $("#inboxList").innerHTML = `<div style="padding:14px;color:var(--muted);">Loading… (the first call after a pause can take up to 15 seconds)</div>`;
+  await pollInbox();
+  if(inboxState.phase==="error"){ $("#inboxList").innerHTML = ""; inboxErr("Could not load: " + inboxState.err); }
+  else renderInbox();
 }
 
 $("#btnFetchInbox").addEventListener("click", ()=>{
   if(!guardEdit()) return;
+  openInbox();
+});
+function openInbox(){
   $("#inboxUrl").value = inboxUrl(); $("#inboxKey").value = inboxKey();
   $("#inboxModal").hidden = false;
   if(inboxUrl() && inboxKey()) loadInbox(); else $("#inboxSettings").style.display = "block";
-});
+}
 $("#btnInboxClose").addEventListener("click", ()=>{ $("#inboxModal").hidden = true; });
 $("#inboxModal").addEventListener("click", e=>{ if(e.target.id==="inboxModal") $("#inboxModal").hidden = true; });
 $("#btnInboxRefresh").addEventListener("click", loadInbox);
@@ -2906,35 +3135,210 @@ $("#btnInboxSaveSettings").addEventListener("click", ()=>{
 $("#btnInboxSelAll").addEventListener("click", ()=>{
   document.querySelectorAll(".inbox-chk:not(:disabled)").forEach(c=>c.checked = true);
 });
+$("#inboxList").addEventListener("click", e=>{
+  const b = e.target.closest("[data-act]"); if(b) inboxAct(b.dataset.act, b.dataset.sid);
+});
+
+/* ---------- import (NEW) ---------- */
+async function importItems(list){
+  const ids = await loadIndex();
+  const done = [];
+  for(const x of list){
+    if(!x || !x.payload) continue;
+    const rec = Object.assign(defaultRecord(), cleanPayload(x.payload));
+    rec.id = newId();
+    rec.savedAt = new Date().toISOString();
+    rec.importedSubmissionIds = [x.submissionId].concat(x._supersedes||[]);
+    await saveRecord(rec);
+    ids.push(rec.id);
+    done.push(x.submissionId); (x._supersedes||[]).forEach(s=>done.push(s));
+  }
+  await saveIndex(ids);
+  if(done.length) await inboxCall({}, {action:"markImported", ids:done});
+  await refreshRecordList();
+  return done.length;
+}
 
 $("#btnInboxImport").addEventListener("click", async ()=>{
   if(!guardEdit()) return;
   const picked = [...document.querySelectorAll(".inbox-chk:checked")].map(c=>c.value);
-  if(!picked.length){ inboxErr("Select at least one submission."); return; }
+  if(!picked.length){ inboxErr("Select at least one submission (rows that match a saved record use Review & Re-import)."); return; }
   inboxErr("");
   try{
-    const ids = await loadIndex();
-    const done = [];
-    for(const sid of picked){
-      const it = inboxItems.find(x=>x.submissionId===sid);
-      if(!it || !it.payload) continue;
-      const rec = Object.assign(defaultRecord(), it.payload);
-      rec.id = newId();
-      rec.savedAt = new Date().toISOString();
-      delete rec.__hraSet;
-      await saveRecord(rec);
-      ids.push(rec.id);
-      done.push(sid);
-    }
-    await saveIndex(ids);
-    if(done.length) await inboxCall({}, {action:"markImported", ids:done});
-    await refreshRecordList();
-    flashStatus(`Imported ${done.length} submission(s) from the collection sheet.`, "ok");
+    const model = buildInboxModel();
+    const n = await importItems(picked.map(sid=>model.find(x=>x.submissionId===sid)));
+    flashStatus(`Imported ${n} submission(s) from the collection sheet.`, "ok");
     await loadInbox();
-  }catch(e){
-    inboxErr("Import failed: " + (e.message||e));
-  }
+  }catch(e){ inboxErr("Import failed: " + (e.message||e)); }
 });
+
+async function inboxAct(act, sid){
+  if(!guardEdit()) return;
+  const x = buildInboxModel().find(i=>i.submissionId===sid);
+  if(!x) return;
+  try{
+    if(act==="import"){
+      await importItems([x]);
+      flashStatus("Imported " + proper((x.payload||{}).staffName||"submission") + ".", "ok");
+      await pollInbox();
+    } else if(act==="reimport"){
+      openDiff(x);
+    }
+  }catch(e){ flashStatus("Import failed: " + (e.message||e), "err"); }
+}
+
+/* ---------- re-import: review what changed, then update the saved record ---------- */
+let diffCtx = null;
+function openDiff(x){
+  const rec = x._match;
+  if(!rec) return;
+  const rows = buildDiff(rec, x.payload||{});
+  diffCtx = {x, rec, rows};
+  $("#diffErr").textContent = "";
+  $("#diffTitle").textContent = "Review update — " + proper((x.payload||{}).staffName||"");
+  $("#diffSub").textContent = (x._kind==="RESUBMIT" ? "Resubmitted by the employee (version "+x._rev+")" : "Submitted by the employee") + " · " + whenText(x.timestamp) + " · saved record: " + proper(rec.staffName||"");
+  if(!rows.length){
+    $("#diffBody").innerHTML = '<div class="panel-empty good">✓ The submitted data is identical to the saved record. Nothing to update.</div>';
+    $("#btnDiffApply").textContent = "Mark as imported";
+    $("#btnDiffAll").style.display = "none";
+    $("#diffNote").textContent = "";
+  } else {
+    $("#diffBody").innerHTML = '<table class="dtable"><thead><tr><th></th><th>Field</th><th>Saved in portal</th><th>New from employee</th></tr></thead><tbody>' +
+      rows.map(r=>`<tr><td><input type="checkbox" class="diff-chk" value="${escapeHtml(r.key)}" ${r.cleared?"":"checked"}></td><td>${escapeHtml(r.label)}</td><td class="old">${escapeHtml(showVal(r.oldV)||"—")}</td><td class="${r.cleared?"cl":"new"}">${r.cleared?"(left blank — saved value kept unless ticked)":escapeHtml(showVal(r.newV))}</td></tr>`).join("") + '</tbody></table>';
+    $("#btnDiffApply").textContent = "Apply update";
+    $("#btnDiffAll").style.display = "";
+    $("#diffNote").textContent = "Only ticked fields are written to the saved record. Fields the employee left blank are not ticked, so office-entered values are not wiped by mistake.";
+  }
+  $("#diffModal").hidden = false;
+}
+$("#btnDiffClose").addEventListener("click", ()=>{ $("#diffModal").hidden = true; });
+$("#btnDiffCancel").addEventListener("click", ()=>{ $("#diffModal").hidden = true; });
+$("#diffModal").addEventListener("click", e=>{ if(e.target.id==="diffModal") $("#diffModal").hidden = true; });
+$("#btnDiffAll").addEventListener("click", ()=>{ document.querySelectorAll(".diff-chk").forEach(c=>c.checked = true); });
+$("#btnDiffApply").addEventListener("click", async ()=>{
+  if(!diffCtx || !guardEdit()) return;
+  const {x, rec, rows} = diffCtx;
+  const picked = [...document.querySelectorAll(".diff-chk:checked")].map(c=>c.value);
+  if(current.id===rec.id && dirty && !confirm("This record has unsaved changes open on screen. Applying the update will replace them. Continue?")) return;
+  const btn = $("#btnDiffApply"); btn.disabled = true;
+  try{
+    const upd = Object.assign({}, rec);
+    rows.forEach(r=>{ if(picked.includes(r.key)) upd[r.key] = r.newV; });
+    upd.savedAt = new Date().toISOString();
+    const sids = [x.submissionId].concat(x._supersedes||[]);
+    upd.importedSubmissionIds = Array.from(new Set((rec.importedSubmissionIds||[]).concat(sids)));
+    await saveRecord(upd);
+    await inboxCall({}, {action:"markImported", ids:sids});
+    if(current.id===upd.id){ current = upd; originalSnapshot = JSON.stringify(current); dirty = false; }
+    await refreshRecordList();
+    $("#diffModal").hidden = true;
+    flashStatus("Updated " + proper(upd.staffName) + " (" + picked.length + " field" + (picked.length===1?"":"s") + ").", "ok");
+    diffCtx = null;
+    await pollInbox();
+    render();
+  }catch(e){
+    $("#diffErr").textContent = "Update failed: " + (e.message||e);
+  }finally{ btn.disabled = false; }
+});
+
+/* ---------- dashboard ---------- */
+function dashStats(){
+  const today = new Date(); today.setHours(0,0,0,0);
+  const in12 = new Date(today.getFullYear()+1, today.getMonth(), today.getDate());
+  const retiring = allRecords.map(r=>({r, d:calcSuperannuation(r.dob)}))
+    .filter(o=>o.d instanceof Date && !isNaN(o.d) && o.d>=today && o.d<=in12)
+    .sort((a,b)=>a.d-b.d);
+  return {
+    total: allRecords.length,
+    ppo: allRecords.filter(r=>String(r.ppoNo||"").trim()).length,
+    retiring
+  };
+}
+function dashAlertPanel(){
+  const ph = inboxState.phase;
+  let body = "", head = "";
+  if(ph==="locked") body = `<div class="panel-empty">🔒 Log in to see staff submissions waiting for import.<br><button class="btn btn-primary btn-xs" style="margin-top:8px;" data-dash="login">Login</button></div>`;
+  else if(ph==="nokey") body = `<div class="panel-empty">Connect the Google Sheet to receive alerts here (Web App URL + Admin Key).<br><button class="btn btn-primary btn-xs" style="margin-top:8px;" data-dash="settings">Connect now</button></div>`;
+  else if(ph==="loading"||ph==="idle") body = `<div class="panel-empty">Checking the Google Sheet for new submissions…</div>`;
+  else if(ph==="error") body = `<div class="panel-empty" style="color:var(--danger);">Could not check submissions: ${escapeHtml(inboxState.err||"")}<br><button class="btn btn-primary btn-xs" style="margin-top:8px;" data-dash="refresh">Retry</button></div>`;
+  else {
+    const pend = pendingItems();
+    if(!pend.length) body = `<div class="panel-empty good">✓ All caught up — no submissions waiting for import or re-import.</div>`;
+    else body = pend.map(x=>inboxRowHtml(x,"dash")).join("");
+    const plain = pend.filter(x=>!x._match).length;
+    if(plain>1) head = `<button class="btn btn-primary btn-xs" data-dash="importAll">⬇ Import all new (${plain})</button>`;
+  }
+  const when = inboxState.at ? "checked " + inboxState.at.toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit"}) : "";
+  return `<div class="panel"><div class="panel-h"><h3>🔔 Submissions waiting for import / re-import</h3><span class="mt" style="font-size:11px;color:var(--muted);">${escapeHtml(when)}</span>${head}</div>${body}</div>`;
+}
+function renderDashboard(){
+  const st = dashStats();
+  const ready = inboxState.phase==="ok" && loggedIn;
+  const pend = ready ? pendingItems() : [];
+  const nNew = pend.filter(x=>x._kind==="NEW").length, nRe = pend.filter(x=>x._kind==="RESUBMIT").length;
+  const handled = ready ? buildInboxModel().filter(x=>x._state==="imported").length : 0;
+  const dash = v => ready ? v : "—";
+  const kpis = [
+    ["", "Pensioner records", st.total, "saved in portal"],
+    ["k-new"+(nNew?" hot":""), "New submissions", dash(nNew), "waiting to be imported"],
+    ["k-re"+(nRe?" hot":""), "Resubmitted", dash(nRe), "waiting to be re-imported"],
+    ["k-ok", "Imported", dash(handled), "submissions handled"],
+    ["k-gold", "PPO issued", st.ppo, "of " + st.total + " records"],
+    ["", "Retiring ≤ 12 months", st.retiring.length, "by date of birth"]
+  ].map(k=>`<div class="kpi ${k[0]}"><div class="lbl">${k[1]}</div><div class="num">${k[2]}</div><div class="ksub">${k[3]}</div></div>`).join("");
+
+  const recent = allRecords.slice(0,8).map(r=>{
+    const d = calcSuperannuation(r.dob);
+    const dtxt = (d instanceof Date && !isNaN(d)) ? fmtD(d,"dd-mm-yyyy") : "—";
+    const ppo = String(r.ppoNo||"").trim() ? '<span class="pill ok">PPO issued</span>' : '<span class="pill wait">In process</span>';
+    return `<tr class="click" data-open="${escapeHtml(r.id)}"><td><span class="nm">${escapeHtml(proper(r.staffName)||"(unnamed)")}</span><div class="mt">${escapeHtml(r.designation||"")} · ${escapeHtml(proper(r.schoolName)||"")}</div></td><td>${escapeHtml(dtxt)}</td><td>${ppo}</td></tr>`;
+  }).join("");
+  const soon = st.retiring.slice(0,8).map(o=>{
+    const days = Math.round((o.d - new Date())/86400000);
+    return `<tr class="click" data-open="${escapeHtml(o.r.id)}"><td><span class="nm">${escapeHtml(proper(o.r.staffName)||"(unnamed)")}</span><div class="mt">${escapeHtml(o.r.designation||"")}</div></td><td>${escapeHtml(fmtD(o.d,"dd-mm-yyyy"))}</td><td><span class="pill ${days<=90?"soon":""}">${days} days</span></td></tr>`;
+  }).join("");
+
+  return `
+  <div class="dash-head">
+    <div><h2>Pension Dashboard</h2><div class="dsub">${escapeHtml(new Date().toLocaleDateString("en-IN",{weekday:"long",day:"numeric",month:"long",year:"numeric"}))} · Official portal: <a href="${OFFICE_URL}" target="_blank" rel="noopener">prabirdangar-web.github.io/wb_pen</a></div></div>
+    <div class="dash-actions">
+      <button class="btn dash-btn" data-dash="refresh">↻ Refresh</button>
+      <button class="btn dash-btn" data-dash="inbox">📥 Open inbox</button>
+      <button class="btn btn-primary" data-dash="new">+ New record</button>
+    </div>
+  </div>
+  <div class="kpi-grid">${kpis}</div>
+  ${dashAlertPanel()}
+  <div class="two-col">
+    <div class="panel"><div class="panel-h"><h3>Recently saved records</h3></div>
+      ${recent ? `<table class="dtable"><thead><tr><th>Employee</th><th>Retirement</th><th>Status</th></tr></thead><tbody>${recent}</tbody></table>` : `<div class="panel-empty">No records yet. Import a submission or add a new record.</div>`}
+    </div>
+    <div class="panel"><div class="panel-h"><h3>Retiring in the next 12 months</h3></div>
+      ${soon ? `<table class="dtable"><thead><tr><th>Employee</th><th>Date</th><th>In</th></tr></thead><tbody>${soon}</tbody></table>` : `<div class="panel-empty">No one is due to retire in the next 12 months.</div>`}
+    </div>
+  </div>`;
+}
+function wireDashboard(){
+  $$("#content [data-act]").forEach(b=>b.addEventListener("click", ()=>inboxAct(b.dataset.act, b.dataset.sid)));
+  $$("#content [data-open]").forEach(tr=>tr.addEventListener("click", ()=>selectRecord(tr.dataset.open)));
+  $$("#content [data-dash]").forEach(b=>b.addEventListener("click", async ()=>{
+    const a = b.dataset.dash;
+    if(a==="refresh"){ inboxState = {phase:"loading"}; refreshInboxUi(); await pollInbox(); }
+    else if(a==="inbox"){ if(guardEdit()) openInbox(); }
+    else if(a==="settings"){ if(guardEdit()){ openInbox(); $("#inboxSettings").style.display = "block"; } }
+    else if(a==="login"){ openLoginModal(); }
+    else if(a==="new"){ $("#btnNew").click(); }
+    else if(a==="importAll"){
+      if(!guardEdit()) return;
+      const list = pendingItems().filter(x=>!x._match);
+      if(!list.length || !confirm("Import " + list.length + " waiting submission(s) as new records?")) return;
+      try{ const n = await importItems(list); flashStatus("Imported " + n + " submission(s).", "ok"); await pollInbox(); }
+      catch(e){ flashStatus("Import failed: " + (e.message||e), "err"); }
+    }
+  }));
+}
+$("#btnDash").addEventListener("click", ()=>{ activeTab = "dash"; render(); });
+$("#btnIaOpen").addEventListener("click", ()=>{ activeTab = "dash"; render(); window.scrollTo({top:0}); });
 
 /* =========================================================================
    SHARE LINK & GUIDE
@@ -2942,7 +3346,7 @@ $("#btnInboxImport").addEventListener("click", async ()=>{
 const SHARE_URL = "https://prabirdangar-web.github.io/pension_data_collection/";
 function shareMessage(){
   return "Dear Colleague,\n\nPlease submit your Pension / Superannuation details online using this link:\n" + SHARE_URL +
-"\n\nHow to fill:\n1. Open the link on your mobile/computer.\n2. Fill School Information and Employee Details (compulsory: Name of the Staff, Number of previous schools).\n3. Fill education and service rows; boxes that do not apply turn grey.\n4. Commutation: enter whole number, e.g. 40 for 40%.\n5. Tap Submit Details ONCE and wait for the green tick with a Reference number. Keep a screenshot.\n6. If an error shows, check internet and tap Submit again.\n\nTo check the status of your pension application later, visit: https://epension.wb.gov.in/e_PensionHome/index\n(পেনশনের স্ট্যাটাস দেখতে: https://epension.wb.gov.in/e_PensionHome/index — Login করে Application Status / PPO অপশন দেখুন।)\n\nThank you.\n- Headmaster";
+"\n\nHow to fill:\n1. Open the link on your mobile/computer.\n2. Fill School Information and Employee Details (compulsory: Name of the Staff, Number of previous schools).\n3. Fill education and service rows; boxes that do not apply turn grey.\n4. Commutation: enter whole number, e.g. 40 for 40%.\n5. Tap Submit Details ONCE and wait for the green tick with a Reference number. Keep a screenshot.\n6. If an error shows, check internet and tap Submit again.\n7. Mistake later? Open the same link, correct the field and tap Resubmit Updated Details.\n\nTo check the status of your pension application later, visit: https://epension.wb.gov.in/e_PensionHome/index\n(পেনশনের স্ট্যাটাস দেখতে: https://epension.wb.gov.in/e_PensionHome/index — Login করে Application Status / PPO অপশন দেখুন।)\n\nThank you.\n- Headmaster";
 }
 async function copyText(t){
   try{ await navigator.clipboard.writeText(t); return true; }
