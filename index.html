@@ -1765,8 +1765,8 @@ function docFLP(t,c){
         "Spouse particulars (proof of DOB, marriage, etc.).",
         "Refund / adjustment of overpayment of salary, if any.",
         "System-generated pay slip of the incumbent (month of submission).",
-        `Declaration by ${declByLabel(t)}: court case / litigation / claim, with employee's declaration.`,
-        `Declaration by ${declByLabel(t)}: outstanding Bank / Teachers' Credit Society loan, with employee's declaration.`
+        `Declaration by ${declByLabel(t)}: court case / litigation / claim.`,
+        `Declaration by ${declByLabel(t)}: outstanding Bank / Teachers' Credit Society loan.`
       ].filter(Boolean).map(x=>`<li style="white-space:nowrap;margin-bottom:0.6mm;text-align:left;">${x}</li>`).join("")}
     </ol>
   `);
@@ -1892,6 +1892,10 @@ function docFLNOLIA(t,c){
       <li>Online No Liability Certificate.</li>
       <li>Certificate issued by HOI / Administrator / President [M.C.]</li>
       ${["HEADMASTER","HEADMISTRESS","TEACHER-IN-CHARGE"].includes(t.designation)? `<li>NOC issued from the end of the concerned CPC</li><li>Charge Hand Over Copy</li>`:""}
+      <li>System-generated pay slip of the incumbent (month of Retirement).</li>
+      <li>Declaration by ${declByLabel(t)}: court case / litigation / claim.</li>
+      <li>Declaration by ${declByLabel(t)}: outstanding Bank / Teachers' Credit Society loan.</li>
+      <li>Copy of PAN, AADHAR, Voter ID / EPIC.</li>
     </ol>
   `);
 }
