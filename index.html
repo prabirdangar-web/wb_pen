@@ -194,10 +194,12 @@
   :root{ --lh-space:73mm; --page-top-margin:14mm; }
   .page.lh-page::before{
     content:"PRE-PRINTED LETTERHEAD SPACE (" attr(data-lh) ")";
-    display:block; height:calc(var(--lh-space) - 16mm); margin-bottom:4mm;
+    display:block; height:max(calc(var(--lh-space) - 16mm),0mm); margin-bottom:4mm;
     border:1px dashed #9aa3ad; color:#9aa3ad; font:600 10pt Arial,sans-serif;
-    text-align:center; line-height:calc(var(--lh-space) - 16mm);
+    text-align:center; line-height:max(calc(var(--lh-space) - 16mm),0mm);
+    overflow:hidden; user-select:none; -webkit-user-select:none;
   }
+  .page.lh-page.lh-tiny::before{display:none;}
   .page.lh-page .letterhead{display:none;}
 
   /* ---------- Standardized Print Engine (exact A4 fit) ---------- */
@@ -264,7 +266,11 @@
       break-inside: avoid;
     }
     .page.lh-page::before{ display:none !important; content:none !important; }
-    .page.lh-page{ padding-top: calc(var(--lh-space) - var(--page-top-margin)) !important; }
+    .page.lh-page{ padding-top: max(calc(var(--lh-space) - var(--page-top-margin)),0mm) !important; }
+    .wtool, .doc-main > .wtool{ display:none !important; }
+    .doc-main{display:block !important;width:100% !important;max-width:none !important;margin:0 !important;padding:0 !important;}
+    .page[contenteditable]{outline:none !important;}
+    .page td.cell-sel{outline:none !important;}
     .page * { visibility: visible !important; }
     .page table { width: 100% !important; table-layout: auto; page-break-inside: auto; }
     .page tr, .page .sig-block-right, .page .sig-box { page-break-inside: avoid; break-inside: avoid; }
@@ -272,6 +278,32 @@
     .page h2, .page h3 { page-break-after: avoid; }
     .page .letterhead { margin-top: 0; }
   }
+
+
+  /* ---------- Word-style document editor ---------- */
+  .doc-main{flex:1;min-width:0;}
+  .wtool{position:sticky;top:0;z-index:30;background:#f3f5f8;border:1px solid var(--line);border-radius:8px;padding:6px 8px;margin-bottom:10px;box-shadow:0 2px 6px rgba(0,0,0,.12);}
+  .wrow{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:2px 0;}
+  .wgrp{display:flex;align-items:center;gap:2px;padding:0 6px;border-right:1px solid #d3d8de;}
+  .wgrp:last-child{border-right:none;}
+  .wb{min-width:28px;height:28px;padding:0 6px;border:1px solid transparent;border-radius:4px;background:transparent;cursor:pointer;font-size:13px;color:#1c2a3a;display:inline-flex;align-items:center;justify-content:center;gap:3px;}
+  .wb:hover{background:#dfe7f0;border-color:#b9c6d6;}
+  .wb.on{background:#cfe0f3;border-color:#7fa6d2;}
+  .wb.txt{font-size:12px;font-weight:600;}
+  .wtool select,.wtool input[type=number]{height:28px;border:1px solid #c3cbd5;border-radius:4px;background:#fff;font-size:12px;padding:0 4px;width:auto;margin:0;}
+  .wtool input[type=number]{width:62px;}
+  .wtool input[type=color]{width:26px;height:26px;padding:0;border:1px solid #c3cbd5;border-radius:4px;background:#fff;cursor:pointer;margin:0;}
+  .wtool label{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:#1c2a3a;margin:0;font-weight:600;}
+  .wtool .wnote{font-size:11px;color:#6b7683;}
+  .wbadge{font-size:11px;font-weight:700;color:#8a5a00;background:#fff3d6;border-radius:10px;padding:2px 8px;}
+  .wmsg{font-size:11.5px;color:#a4322a;font-weight:600;margin-left:6px;}
+  .page[contenteditable="true"]{cursor:text;outline:none;}
+  .page[contenteditable="true"]:focus{box-shadow:0 0 0 2px #5b9bd5, 0 4px 12px rgba(0,0,0,0.3);}
+  .print-area .page + .page{margin-top:14px;}
+  .page img{max-width:100%;}
+  .page td,.page th{min-width:12px;}
+  .page ul,.page ol{margin:0 0 3mm;padding-left:22px;}
+  .page .lh-page-note{display:none;}
 
   /* ---------- Collection Inbox (Apps Script) ---------- */
   .modal-box.wide{max-width:760px;max-height:88vh;display:flex;flex-direction:column;}
@@ -2525,31 +2557,405 @@ function visibleDocs(t){
     (spIn || d.id !== "HRAD")                        // HRA declaration only when spouse is in service
   );
 }
+/* =========================================================================
+   DOCUMENT EDITOR  (Word-style editing of every generated document)
+   - every page is directly editable (click and type)
+   - toolbar: font, size, bold/italic/underline (+types), colour, highlight,
+     alignment, lists, indent, line-spacing, case, tables, images, new sheet
+   - school-pad blank area (top space for pre-printed letterhead) adjustable
+   - edits are remembered per record + document; "Reset" restores auto text
+   ========================================================================= */
+const LS_EDITS = "docEdits_v1", LS_LH = "lhSpaceCm_v1", LS_LHO = "lhOverride_v1";
+function lsGet(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } }
+function lsSet(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); return true; }catch(e){ return false; } }
+let DOC_EDITS = lsGet(LS_EDITS, {});
+let LH_OVERRIDE = lsGet(LS_LHO, {});
+let LH_CM = Number(lsGet(LS_LH, 7.3)); if(!(LH_CM >= 0)) LH_CM = 7.3;
+function applyLhSpace(){
+  document.documentElement.style.setProperty("--lh-space", (LH_CM*10) + "mm");
+  document.querySelectorAll(".page.lh-page").forEach(p=>{
+    p.setAttribute("data-lh", LH_CM + " cm");
+    p.classList.toggle("lh-tiny", LH_CM*10 <= 16);
+  });
+}
+applyLhSpace();
+function docKey(){ return (current && current.id ? current.id : "new") + "|" + activeDoc; }
+function isLhOn(){
+  const o = LH_OVERRIDE[docKey()];
+  return (o === undefined) ? LETTERHEAD_DOCS.has(activeDoc) : !!o;
+}
+let editDirtyTimer = null, editTouched = false, wSavedRange = null, editKey = null;
+
 function renderDocs(){
   if(!visibleDocs(current).some(d=>d.id===activeDoc)) activeDoc = "COVER";
   const c = compute(current);
   const activeRenderer = DOC_RENDERERS[activeDoc];
-  let html = activeRenderer ? activeRenderer(current, c) : "";
-  if(LETTERHEAD_DOCS.has(activeDoc)) html = html.replace('<div class="page">','<div class="page lh-page" data-lh="7.3 cm">');
+  const edited = DOC_EDITS[docKey()];
+  let html = edited || (activeRenderer ? activeRenderer(current, c) : "");
+  const fonts = ["Times New Roman","Arial","Calibri","Cambria","Georgia","Verdana","Tahoma","Trebuchet MS","Courier New","Nirmala UI","Segoe UI","Garamond","Bookman Old Style","Century Gothic"];
+  const sizes = [8,9,10,11,12,13,14,16,18,20,22,24,28,32,36,48];
   return `
   <div class="doc-layout">
     <div class="doc-list">
       ${visibleDocs(current).map(d=>`<button class="doc-btn ${activeDoc===d.id?'active':''}" data-doc="${d.id}">${d.name}<small>${d.sub}</small></button>`).join("")}
     </div>
-    <div class="doc-preview-wrap">
-      <div class="preview-toolbar">
-        <button class="btn btn-ghost" id="btnPrintOne">Print This Document</button>
+    <div class="doc-main">
+      <div class="wtool" id="wtool">
+        <div class="wrow">
+          <div class="wgrp">
+            <button class="wb" data-w="undo" title="Undo (Ctrl+Z)">↶</button>
+            <button class="wb" data-w="redo" title="Redo (Ctrl+Y)">↷</button>
+          </div>
+          <div class="wgrp">
+            <select id="wFont" title="Font">${fonts.map(f=>`<option value="${f}" style="font-family:'${f}'">${f}</option>`).join("")}</select>
+            <select id="wSize" title="Font size (pt)">${sizes.map(s=>`<option value="${s}" ${s===12?'selected':''}>${s}</option>`).join("")}</select>
+            <button class="wb" data-w="sizeUp" title="Increase font size">A▲</button>
+            <button class="wb" data-w="sizeDown" title="Decrease font size">A▼</button>
+          </div>
+          <div class="wgrp">
+            <button class="wb" data-w="bold" title="Bold (Ctrl+B)"><b>B</b></button>
+            <button class="wb" data-w="italic" title="Italic (Ctrl+I)"><i>I</i></button>
+            <button class="wb" data-w="underline" title="Underline (Ctrl+U)"><u>U</u></button>
+            <select id="wUl" title="Underline type (select text first)">
+              <option value="">Underline type…</option>
+              <option value="single">Single ____</option>
+              <option value="double">Double ═══</option>
+              <option value="thick">Thick ▬▬▬</option>
+              <option value="dotted">Dotted ·····</option>
+              <option value="dashed">Dashed - - -</option>
+              <option value="wavy">Wavy 〰〰〰</option>
+              <option value="none">Remove underline</option>
+            </select>
+            <button class="wb" data-w="strikeThrough" title="Strikethrough"><s>S</s></button>
+            <button class="wb" data-w="overline" title="Overline"><span style="text-decoration:overline">O</span></button>
+            <button class="wb" data-w="subscript" title="Subscript">x₂</button>
+            <button class="wb" data-w="superscript" title="Superscript">x²</button>
+          </div>
+          <div class="wgrp">
+            <label title="Font colour">A<input type="color" id="wColor" value="#111111"></label>
+            <label title="Highlight colour">🖍<input type="color" id="wHi" value="#ffff00"></label>
+            <button class="wb" data-w="noHi" title="Remove highlight">⌀</button>
+          </div>
+          <div class="wgrp">
+            <button class="wb" data-w="justifyLeft" title="Align left">⯇≡</button>
+            <button class="wb" data-w="justifyCenter" title="Centre">≡</button>
+            <button class="wb" data-w="justifyRight" title="Align right">≡⯈</button>
+            <button class="wb" data-w="justifyFull" title="Justify">☰</button>
+          </div>
+        </div>
+        <div class="wrow">
+          <div class="wgrp">
+            <button class="wb" data-w="insertUnorderedList" title="Bullets">• List</button>
+            <button class="wb" data-w="insertOrderedList" title="Numbering">1. List</button>
+            <button class="wb" data-w="outdent" title="Decrease indent">⇤</button>
+            <button class="wb" data-w="indent" title="Increase indent">⇥</button>
+          </div>
+          <div class="wgrp">
+            <select id="wLine" title="Line spacing (selected paragraphs)">
+              <option value="">Line spacing…</option>
+              <option>1</option><option>1.15</option><option>1.3</option><option>1.45</option><option>1.5</option><option>1.8</option><option>2</option><option>2.5</option>
+            </select>
+            <select id="wSpace" title="Space after paragraph">
+              <option value="">Para gap…</option>
+              <option value="0">0 mm</option><option value="1">1 mm</option><option value="3">3 mm</option><option value="5">5 mm</option><option value="8">8 mm</option><option value="12">12 mm</option>
+            </select>
+            <select id="wLetter" title="Letter spacing">
+              <option value="">Letter gap…</option>
+              <option value="0">Normal</option><option value="0.5px">0.5 px</option><option value="1px">1 px</option><option value="2px">2 px</option><option value="3px">3 px</option>
+            </select>
+            <select id="wCase" title="Change case">
+              <option value="">Aa Case…</option>
+              <option value="uppercase">UPPERCASE</option>
+              <option value="lowercase">lowercase</option>
+              <option value="capitalize">Capitalize Each Word</option>
+              <option value="none">Normal</option>
+            </select>
+          </div>
+          <div class="wgrp">
+            <button class="wb txt" data-w="tblInsert" title="Insert table">▦ Table</button>
+            <button class="wb txt" data-w="rowAdd" title="Add row below">+Row</button>
+            <button class="wb txt" data-w="colAdd" title="Add column to the right">+Col</button>
+            <button class="wb txt" data-w="rowDel" title="Delete row">−Row</button>
+            <button class="wb txt" data-w="colDel" title="Delete column">−Col</button>
+            <button class="wb txt" data-w="tblBorder" title="Toggle table borders">▢ Border</button>
+            <label title="Cell shading (click inside a cell first)">▨<input type="color" id="wCell" value="#f2f2f2"></label>
+          </div>
+          <div class="wgrp">
+            <button class="wb txt" data-w="img" title="Insert image (logo / signature / seal)">🖼 Image</button>
+            <button class="wb txt" data-w="imgW" title="Set width of the last clicked image (mm)">↔ Img size</button>
+            <button class="wb txt" data-w="hr" title="Horizontal line">― Line</button>
+            <button class="wb txt" data-w="date" title="Insert today's date">📅 Date</button>
+            <button class="wb txt" data-w="sheet" title="Split here: start a new A4 sheet from the cursor">⎘ New sheet</button>
+            <button class="wb" data-w="clear" title="Clear formatting">Tx̸</button>
+            <input type="file" id="wImgFile" accept="image/*" style="display:none">
+          </div>
+        </div>
+        <div class="wrow">
+          <div class="wgrp" title="Blank area left at the top of the sheet for the school's pre-printed pad / letterhead">
+            <label><input type="checkbox" id="wLhOn" ${isLhOn()?'checked':''}> School pad blank area</label>
+            <input type="number" id="wLhCm" min="0" max="20" step="0.1" value="${LH_CM}"> <span class="wnote">cm from top</span>
+            <button class="wb txt" data-lh="0">0</button>
+            <button class="wb txt" data-lh="5">5</button>
+            <button class="wb txt" data-lh="6">6</button>
+            <button class="wb txt" data-lh="7.3">7.3</button>
+            <button class="wb txt" data-lh="8">8</button>
+            <button class="wb txt" data-lh="9">9</button>
+          </div>
+          <div class="wgrp">
+            <label><input type="checkbox" id="wEditOn" checked> Editing</label>
+            <button class="wb txt" id="wReset" title="Discard your edits and regenerate this document from the record data">↺ Reset to auto text</button>
+            <span class="wbadge" id="wBadge" style="${edited?'':'display:none'}">✎ Edited copy</span>
+            <button class="btn btn-primary" id="btnPrintOne" style="padding:5px 12px;">🖨 Print This Document</button>
+            <span class="wmsg" id="wMsg"></span>
+          </div>
+        </div>
       </div>
-      <div class="print-area" id="printArea">${html}</div>
+      <div class="doc-preview-wrap">
+        <div class="print-area" id="printArea">${html}</div>
+      </div>
     </div>
   </div>`;
 }
 
+/* ---- editor helpers ---- */
+function wArea(){ return document.getElementById("printArea"); }
+function wMsg(t){ const m = document.getElementById("wMsg"); if(!m) return; m.textContent = t || ""; if(t) setTimeout(()=>{ if(m.textContent===t) m.textContent=""; }, 3200); }
+function wRestore(){
+  const pa = wArea(); if(!pa) return false;
+  const s = window.getSelection();
+  if(wSavedRange){ s.removeAllRanges(); s.addRange(wSavedRange); }
+  return s.rangeCount > 0 && pa.contains(s.getRangeAt(0).commonAncestorContainer);
+}
+function wTouch(){
+  editTouched = true; editKey = docKey();
+  clearTimeout(editDirtyTimer);
+  editDirtyTimer = setTimeout(wFlush, 350);
+  const b = document.getElementById("wBadge"); if(b) b.style.display = "";
+}
+function wFlush(){
+  clearTimeout(editDirtyTimer);
+  const pa = wArea();
+  if(!pa || !editTouched) return;
+  editTouched = false;
+  DOC_EDITS[editKey || docKey()] = pa.innerHTML;
+  if(!lsSet(LS_EDITS, DOC_EDITS)) wMsg("Edits kept for this session only (browser storage full).");
+}
+document.addEventListener("selectionchange", ()=>{
+  const pa = wArea(); if(!pa) return;
+  const s = window.getSelection();
+  if(s.rangeCount && pa.contains(s.getRangeAt(0).commonAncestorContainer)){
+    wSavedRange = s.getRangeAt(0).cloneRange();
+    wSyncUi();
+  }
+});
+function wSyncUi(){
+  try{
+    ["bold","italic","underline","strikeThrough","subscript","superscript","insertUnorderedList","insertOrderedList","justifyLeft","justifyCenter","justifyRight","justifyFull"].forEach(c=>{
+      const b = document.querySelector('.wb[data-w="'+c+'"]'); if(b) b.classList.toggle("on", document.queryCommandState(c));
+    });
+    const s = window.getSelection(); if(!s.rangeCount) return;
+    let n = s.anchorNode; if(n && n.nodeType===3) n = n.parentElement;
+    if(n && n.nodeType===1){
+      const cs = getComputedStyle(n);
+      const pt = Math.round(parseFloat(cs.fontSize) * 0.75);
+      const sz = document.getElementById("wSize"); if(sz){ if(![...sz.options].some(o=>+o.value===pt)){ const o=document.createElement("option"); o.value=pt; o.textContent=pt; sz.appendChild(o); } sz.value = pt; }
+      const fam = cs.fontFamily.split(",")[0].replace(/["']/g,"").trim();
+      const ff = document.getElementById("wFont"); if(ff){ const m=[...ff.options].find(o=>o.value.toLowerCase()===fam.toLowerCase()); if(m) ff.value = m.value; }
+    }
+  }catch(e){}
+}
+function wExec(cmd, val){
+  if(!wRestore()){ wMsg("Click inside the document first."); return false; }
+  document.execCommand("styleWithCSS", false, true);
+  document.execCommand(cmd, false, val);
+  wTouch(); return true;
+}
+/* wrap selection in a <span> with given inline styles (nested duplicates removed) */
+function wSpan(styles){
+  if(!wRestore()){ wMsg("Click inside the document first."); return; }
+  const sel = window.getSelection();
+  if(sel.isCollapsed){ wMsg("Select some text first."); return; }
+  document.execCommand("styleWithCSS", false, false);
+  document.execCommand("fontSize", false, "7");
+  const pa = wArea();
+  pa.querySelectorAll('font[size="7"]').forEach(f=>{
+    const sp = document.createElement("span");
+    Object.assign(sp.style, styles);
+    while(f.firstChild) sp.appendChild(f.firstChild);
+    sp.querySelectorAll("span").forEach(inner=>{ Object.keys(styles).forEach(k=>{ inner.style[k] = ""; }); });
+    f.replaceWith(sp);
+  });
+  wTouch();
+}
+function wBlocks(){
+  const pa = wArea(); if(!pa || !wRestore()) return [];
+  const r = window.getSelection().getRangeAt(0);
+  const set = new Set();
+  pa.querySelectorAll("p,li,div,td,th,h1,h2,h3,h4,blockquote").forEach(b=>{
+    if(b.classList.contains("page") || b.classList.contains("print-area")) return;
+    if(r.intersectsNode(b)) set.add(b);
+  });
+  let out = [...set];
+  // keep innermost blocks only
+  out = out.filter(b => !out.some(o => o !== b && b.contains(o)));
+  if(!out.length){ let n = r.commonAncestorContainer; if(n.nodeType===3) n = n.parentElement; const b = n.closest("p,li,div,td,th,h1,h2,h3,h4"); if(b && !b.classList.contains("page")) out=[b]; }
+  return out;
+}
+function wCurrentCell(){
+  if(!wRestore()) return null;
+  let n = window.getSelection().anchorNode; if(n && n.nodeType===3) n = n.parentElement;
+  return n ? n.closest("td,th") : null;
+}
+function wEmptyCell(td){ const c = td.cloneNode(false); c.innerHTML = "&nbsp;"; return c; }
+
+function wAction(a){
+  const pa = wArea();
+  switch(a){
+    case "undo": case "redo": wRestore(); document.execCommand(a); wTouch(); break;
+    case "bold": case "italic": case "underline": case "strikeThrough": case "subscript": case "superscript":
+    case "justifyLeft": case "justifyCenter": case "justifyRight": case "justifyFull":
+    case "insertUnorderedList": case "insertOrderedList": case "indent": case "outdent":
+      wExec(a); wSyncUi(); break;
+    case "overline": {
+      if(!wRestore() || window.getSelection().isCollapsed){ wMsg("Select some text first."); break; }
+      wSpan({textDecorationLine:"overline"}); break; }
+    case "sizeUp": case "sizeDown": {
+      const sz = document.getElementById("wSize"); const cur = +sz.value || 12;
+      const n = Math.max(6, Math.min(96, cur + (a==="sizeUp" ? 1 : -1)));
+      wSpan({fontSize:n+"pt"}); sz.value = n; break; }
+    case "noHi": wExec("hiliteColor", "transparent"); break;
+    case "clear": wExec("removeFormat"); break;
+    case "hr": wExec("insertHTML", '<hr style="border:0;border-top:1px solid #222;margin:3mm 0;">'); break;
+    case "date": { const d = new Date(); const s = String(d.getDate()).padStart(2,"0")+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+d.getFullYear(); wExec("insertText", s); break; }
+    case "tblInsert": {
+      if(!wRestore()){ wMsg("Click inside the document first."); break; }
+      const rows = parseInt(prompt("Number of rows?", "3"), 10), cols = parseInt(prompt("Number of columns?", "3"), 10);
+      if(!(rows>0 && cols>0)) break;
+      let h = '<table style="width:100%;border-collapse:collapse;margin:3mm 0;">';
+      for(let r=0;r<rows;r++){ h += "<tr>"; for(let c=0;c<cols;c++) h += '<td style="border:1px solid #111;padding:4px 6px;">&nbsp;</td>'; h += "</tr>"; }
+      h += "</table><p><br></p>";
+      wExec("insertHTML", h); break; }
+    case "rowAdd": { const td = wCurrentCell(); if(!td){ wMsg("Click inside a table cell first."); break; }
+      const tr = td.parentElement, nr = tr.cloneNode(true); nr.querySelectorAll("td,th").forEach(c=>{ c.innerHTML="&nbsp;"; c.removeAttribute("rowspan"); });
+      tr.after(nr); wTouch(); break; }
+    case "colAdd": { const td = wCurrentCell(); if(!td){ wMsg("Click inside a table cell first."); break; }
+      const idx = td.cellIndex, tbl = td.closest("table");
+      tbl.querySelectorAll("tr").forEach(tr=>{ const ref = tr.cells[Math.min(idx, tr.cells.length-1)]; if(ref){ const nc = wEmptyCell(ref); nc.removeAttribute("colspan"); nc.removeAttribute("rowspan"); ref.after(nc); } });
+      wTouch(); break; }
+    case "rowDel": { const td = wCurrentCell(); if(!td){ wMsg("Click inside a table cell first."); break; }
+      const tr = td.parentElement, tbl = td.closest("table"); tr.remove(); if(!tbl.rows.length) tbl.remove(); wTouch(); break; }
+    case "colDel": { const td = wCurrentCell(); if(!td){ wMsg("Click inside a table cell first."); break; }
+      const idx = td.cellIndex, tbl = td.closest("table");
+      tbl.querySelectorAll("tr").forEach(tr=>{ if(tr.cells[idx]) tr.cells[idx].remove(); });
+      if(![...tbl.querySelectorAll("td,th")].length) tbl.remove(); wTouch(); break; }
+    case "tblBorder": { const td = wCurrentCell(); if(!td){ wMsg("Click inside a table cell first."); break; }
+      const tbl = td.closest("table"), cells = tbl.querySelectorAll("td,th");
+      const has = getComputedStyle(td).borderTopStyle !== "none";
+      cells.forEach(c=>{ c.style.border = has ? "none" : "1px solid #111"; });
+      wTouch(); break; }
+    case "img": wRestore(); document.getElementById("wImgFile").click(); break;
+    case "imgW": {
+      const img = window.__wLastImg; if(!img || !pa.contains(img)){ wMsg("Click an image first."); break; }
+      const cur = Math.round(img.getBoundingClientRect().width / 3.78);
+      const mm = parseFloat(prompt("Image width in mm:", cur)); if(!(mm>0)) break;
+      img.style.width = mm + "mm"; img.style.height = "auto"; wTouch(); break; }
+    case "sheet": {
+      if(!wRestore()){ wMsg("Click where the new sheet should start."); break; }
+      const rg = window.getSelection().getRangeAt(0); let n = rg.startContainer; if(n.nodeType===3) n = n.parentElement;
+      const page = n.closest(".page"); if(!page){ wMsg("Click inside a sheet."); break; }
+      const r2 = document.createRange(); r2.setStart(rg.startContainer, rg.startOffset); r2.setEnd(page, page.childNodes.length);
+      const frag = r2.extractContents();
+      const np = page.cloneNode(false); np.appendChild(frag);
+      if(!np.textContent.trim() && !np.querySelector("img,table")) np.innerHTML = "<p><br></p>";
+      page.after(np); wTouch(); wMsg("New sheet created — it gets its own blank pad area."); break; }
+  }
+}
+
+function wPrepPages(){
+  const pa = wArea(); if(!pa) return;
+  const on = isLhOn();
+  const editing = !document.getElementById("wEditOn") || document.getElementById("wEditOn").checked;
+  pa.querySelectorAll(".page").forEach(p=>{
+    p.classList.toggle("lh-page", on);
+    if(on) p.setAttribute("data-lh", LH_CM + " cm"); else p.removeAttribute("data-lh");
+    p.classList.toggle("lh-tiny", on && LH_CM*10 <= 16);
+    p.setAttribute("contenteditable", editing ? "true" : "false");
+    p.setAttribute("spellcheck", "false");
+  });
+}
+
 function wireDocButtons(){
   $$(".doc-btn").forEach(b=>b.addEventListener("click", ()=>{ activeDoc=b.dataset.doc; render(); }));
-  const one = $("#btnPrintOne");
-  if(one) one.addEventListener("click", ()=> window.print());
+  const pa = wArea(); if(!pa) return;
+  wSavedRange = null; editTouched = false;
+  wPrepPages();
+  const tool = document.getElementById("wtool");
+
+  // keep the text selection when clicking toolbar buttons
+  tool.addEventListener("mousedown", e=>{ if(e.target.closest(".wb")) e.preventDefault(); });
+  tool.addEventListener("click", e=>{
+    const b = e.target.closest(".wb"); if(!b) return;
+    if(b.dataset.lh !== undefined){ setLh(parseFloat(b.dataset.lh)); return; }
+    if(b.dataset.w) wAction(b.dataset.w);
+  });
+
+  document.getElementById("wFont").addEventListener("change", e=>{ wSpan({fontFamily:"'"+e.target.value+"', serif"}); });
+  document.getElementById("wSize").addEventListener("change", e=>{ wSpan({fontSize:e.target.value+"pt"}); });
+  document.getElementById("wUl").addEventListener("change", e=>{
+    const v = e.target.value; e.target.value = "";
+    if(!v) return;
+    if(v==="none"){ if(wRestore() && document.queryCommandState("underline")) document.execCommand("underline"); wSpan({textDecorationLine:"none"}); return; }
+    wSpan({textDecorationLine:"underline", textDecorationStyle: v==="thick" ? "solid" : v, textDecorationThickness: v==="thick" ? "2px" : "auto", textUnderlineOffset:"2px"});
+  });
+  document.getElementById("wColor").addEventListener("input", e=>{ wExec("foreColor", e.target.value); });
+  document.getElementById("wHi").addEventListener("input", e=>{ wExec("hiliteColor", e.target.value); });
+  document.getElementById("wCell").addEventListener("input", e=>{ const td = wCurrentCell(); if(!td){ wMsg("Click inside a table cell first."); return; } td.style.backgroundColor = e.target.value; wTouch(); });
+  document.getElementById("wLine").addEventListener("change", e=>{ const v = e.target.value; e.target.value=""; if(!v) return; const bl = wBlocks(); if(!bl.length){ wMsg("Click inside a paragraph first."); return; } bl.forEach(b=>b.style.lineHeight = v); wTouch(); });
+  document.getElementById("wSpace").addEventListener("change", e=>{ const v = e.target.value; e.target.value=""; if(v==="") return; const bl = wBlocks(); if(!bl.length){ wMsg("Click inside a paragraph first."); return; } bl.forEach(b=>b.style.marginBottom = v+"mm"); wTouch(); });
+  document.getElementById("wLetter").addEventListener("change", e=>{ const v = e.target.value; e.target.value=""; if(v==="") return; wSpan({letterSpacing:v}); });
+  document.getElementById("wCase").addEventListener("change", e=>{ const v = e.target.value; e.target.value=""; if(!v) return; wSpan({textTransform:v}); });
+
+  document.getElementById("wImgFile").addEventListener("change", e=>{
+    const f = e.target.files[0]; e.target.value = ""; if(!f) return;
+    const rd = new FileReader();
+    rd.onload = ()=>{ wExec("insertHTML", '<img src="'+rd.result+'" style="width:35mm;height:auto;vertical-align:middle;">'); };
+    rd.readAsDataURL(f);
+  });
+
+  function setLh(v){
+    if(!(v>=0)) return;
+    LH_CM = Math.min(20, Math.round(v*10)/10); lsSet(LS_LH, LH_CM);
+    document.getElementById("wLhCm").value = LH_CM;
+    const on = document.getElementById("wLhOn");
+    if(v > 0 && !on.checked){ on.checked = true; LH_OVERRIDE[docKey()] = true; lsSet(LS_LHO, LH_OVERRIDE); }
+    applyLhSpace(); wPrepPages();
+  }
+  document.getElementById("wLhCm").addEventListener("input", e=>{ const v = parseFloat(e.target.value); if(v>=0){ LH_CM = Math.min(20, v); lsSet(LS_LH, LH_CM); applyLhSpace(); wPrepPages(); } });
+  document.getElementById("wLhOn").addEventListener("change", e=>{ LH_OVERRIDE[docKey()] = e.target.checked; lsSet(LS_LHO, LH_OVERRIDE); wPrepPages(); });
+  document.getElementById("wEditOn").addEventListener("change", ()=>wPrepPages());
+  document.getElementById("wReset").addEventListener("click", ()=>{
+    if(!DOC_EDITS[docKey()] && !LH_OVERRIDE[docKey()] && LH_OVERRIDE[docKey()] === undefined){ wMsg("Nothing to reset."); return; }
+    if(!confirm("Discard all your edits to this document and regenerate it from the record data?")) return;
+    delete DOC_EDITS[docKey()]; delete LH_OVERRIDE[docKey()]; lsSet(LS_EDITS, DOC_EDITS); lsSet(LS_LHO, LH_OVERRIDE);
+    editTouched = false; render();
+  });
+
+  pa.addEventListener("input", wTouch);
+  pa.addEventListener("blur", wFlush, true);
+  pa.addEventListener("click", e=>{ if(e.target.tagName==="IMG") window.__wLastImg = e.target; });
+  pa.addEventListener("keydown", e=>{
+    if(e.key==="Tab" && !e.shiftKey){ e.preventDefault(); document.execCommand("insertHTML", false, "&emsp;&emsp;"); }
+  });
+  const one = document.getElementById("btnPrintOne");
+  if(one) one.addEventListener("click", ()=>{ wFlush(); window.print(); });
 }
+
+/* save pending edits before any re-render (switching documents/tabs/records) */
+(function(){
+  const _render = render;
+  render = function(){ try{ wFlush(); }catch(e){} return _render.apply(this, arguments); };
+})();
+window.addEventListener("beforeunload", ()=>{ try{ wFlush(); }catch(e){} });
 
 /* =========================================================================
    EVENT WIRING
