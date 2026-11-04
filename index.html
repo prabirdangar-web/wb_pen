@@ -824,6 +824,9 @@ const SECTIONS = [
     {id:"declCasePending", label:"Any case pending against the teacher at any Court of Law? [Yes / No]", type:"select", options:["YES","NO"]},
     {id:"declPostLitigation", label:"Any litigation pending against the post he/she is working in? [Yes / No]", type:"select", options:["YES","NO"]},
     {id:"declClaimMatter", label:"Any matter related to his/her claim pending at any Court of Law? [Yes / No]", type:"select", options:["YES","NO"]},
+    {id:"declSpouseHra", label:"HRA also drawn by spouse for the same period (double HRA)? [Yes / No]", type:"select", options:["YES","NO"], hint:"Used in the matched HRA declarations (Employee + HOI). Normally NO."},
+    {id:"declHraExcess", label:"Any excess / overdrawn HRA pending recovery from the employee? [Yes / No]", type:"select", options:["YES","NO"]},
+    {id:"declHraDetails", label:"HRA details (period, amount, challan / TR-7 no. &amp; date) — if any Yes above", type:"textarea"},
     {id:"declCaseDetails", label:"Court case details (Case No., Court, Status) — if any Yes above", type:"textarea"},
     {id:"declBankLoan", label:"Outstanding personal loan to any Bank? [Yes / No]", type:"select", options:["YES","NO"]},
     {id:"declSocietyLoan", label:"Outstanding personal loan to Teachers' Credit Co-operative Society? [Yes / No]", type:"select", options:["YES","NO"]},
@@ -852,7 +855,7 @@ function defaultRecord(){
   d.adminStatus = "President [M.C.]";
   d.hraMode = "PERCENT";
   d.commutationOpted = "YES";
-  d.declCasePending="NO"; d.declPostLitigation="NO"; d.declClaimMatter="NO"; d.declBankLoan="NO"; d.declSocietyLoan="NO";
+  d.declCasePending="NO"; d.declPostLitigation="NO"; d.declClaimMatter="NO"; d.declBankLoan="NO"; d.declSocietyLoan="NO"; d.declSpouseHra="NO"; d.declHraExcess="NO";
   d.hraPercentValue = "12";
   d.hraFixedAmount = "3600";
   d.spouseRelation = "WIFE";
@@ -1798,7 +1801,8 @@ function docFLP(t,c){
         "Refund / adjustment of overpayment of salary, if any.",
         "System-generated pay slip of the incumbent (month of submission).",
         `Declaration by ${declByLabel(t)}: court case / litigation / claim.`,
-        `Declaration by ${declByLabel(t)}: outstanding Bank / Teachers' Credit Society loan.`
+        `Declaration by ${declByLabel(t)}: outstanding Bank / Teachers' Credit Society loan.`,
+        `Declaration by ${declByLabel(t)}: spouse employment & HRA (with matching Employee declaration).`
       ].filter(Boolean).map(x=>`<li style="white-space:nowrap;margin-bottom:0.6mm;text-align:left;">${x}</li>`).join("")}
     </ol>
   `);
@@ -2195,6 +2199,71 @@ function docEMPLOAN(t,c){
   `);
 }
 
+/* --- Matched HRA declarations: Employee (first person) + HOI (third person) built from the SAME facts, so they always agree --- */
+function hraDeclItems(t,c,fp){
+  const g=t.gender, st=t.spouseStatus;
+  const my = fp ? "my" : hisHer(g), me = fp ? "me" : himHer(g);
+  const My = fp ? "My" : HisHer(g);
+  const who = fp ? "me" : `${MrMrs(g)} ${blank(proper(t.staffName))}`;
+  const be = fp ? "I am" : `${heShe(g)} is`, has = fp ? "have" : "has";
+  const spT = g==="MALE" ? "Smt." : "Sri", rel = wifeHusband(g);
+  const retired = !!(c.dor && new Date()>c.dor);
+  const items = [];
+  if(st==="IN SERVICE"){
+    items.push(`${My} ${rel}, ${spT} ${blank(proper(t.spouseName))}, ${retired?"served":"is serving"} as ${blank(proper(t.spouseDesignation))} in ${blank(proper(t.spouseOffice))} under ${blank(proper(t.spouseDept))} since ${blank(fmtDate(t.spouseDoj,"dd-mm-yyyy"))}${c.spouseDor?` and is due to retire on ${fmtD(c.spouseDor,"dd-mm-yyyy")}`:""}.`);
+  } else if(st==="HOUSEWIFE" || st==="NOT IN SERVICE"){
+    items.push(`${My} ${rel}, ${blank(proper(t.spouseName))}, is not in service and was never engaged in any service under the Government of India, any State Government, any Undertaking, statutory / local body or Educational Institution.`);
+  } else if(st==="UN MARRIED"){
+    items.push(`${be} unmarried and hence there is no spouse to draw any House Rent Allowance.`);
+  } else if(st==="WIDOW" || st==="WIDOWER"){
+    items.push(`${be} a ${st==="WIDOW"?"widow":"widower"} and ${has} no spouse living, hence no HRA is drawn by any spouse.`);
+  } else if(st==="DIVORCED"){
+    items.push(`${be} divorced and ${has} no spouse, hence no HRA is drawn by any spouse.`);
+  } else if(st==="SEPARATED"){
+    items.push(`${be} living separately from ${my} spouse, and no HRA is drawn by the spouse on account of ${me}.`);
+  } else {
+    items.push(`${My} spouse status: ${blank(st)}.`);
+  }
+  items.push(declYN(t.declSpouseHra,
+    `House Rent Allowance is / was ALSO drawn by ${my} spouse for the same period`,
+    `No House Rent Allowance is or was drawn by ${my} spouse for the same period or on account of ${me}`) + ".");
+  items.push(`The House Rent Allowance drawn by ${who} throughout ${my} service is as per the Grant-in-Aid rules and within the prescribed limit.`);
+  const amt = Number(t.hraOverdrawn)>0 ? ` of Rs. ${inr(t.hraOverdrawn)}` : "";
+  items.push(declYN(t.declHraExcess,
+    `Excess / overdrawn HRA${amt} is pending recovery / refund from ${who}${t.challanNoDate?` (Challan / TR-7: ${escapeHtml(t.challanNoDate)})`:""}`,
+    `No excess / overdrawn HRA is pending recovery from ${who}${(Number(t.hraOverdrawn)>0 && t.challanNoDate)?`; the earlier excess HRA${amt} has been refunded vide ${escapeHtml(t.challanNoDate)}`:""}`) + ".");
+  return items;
+}
+function hraDeclExtra(t){
+  const anyYes = [t.declSpouseHra,t.declHraExcess].some(v=>String(v||"").toUpperCase()==="YES");
+  const unset = [t.declSpouseHra,t.declHraExcess].some(v=>!v);
+  return (anyYes ? `<p>Details (period, amount, challan / TR-7 no. &amp; date): ${t.declHraDetails ? `<strong>${escapeHtml(t.declHraDetails)}</strong>` : "______________________________________________________________"}</p>` : ``)
+       + (unset ? `<p class="small">[Delete whichever is not applicable.]</p>` : ``);
+}
+function docDECLHRA(t,c){
+  return pageWrap(`
+    ${letterhead(t)}
+    <h2 class="doc-title">${declTitle(t)}</h2>
+    <h3 class="doc-sub">Regarding Employment / Non-Employment of Spouse and House Rent Allowance (HRA)</h3>
+    <p class="ref-line">Ref: Employee ID: ${blank(t.employeeCode)} ; Application ID: ${blank(t.applicationId)}</p>
+    ${declIntro(t,c)}
+    <ol class="items">${hraDeclItems(t,c,false).map(x=>`<li>${x}</li>`).join("")}</ol>
+    ${hraDeclExtra(t)}
+    ${declFooter(t)}
+  `);
+}
+function docEMPHRA(t,c){
+  return pageWrap(`
+    <h2 class="doc-title">Declaration by the Employee</h2>
+    <h3 class="doc-sub">Regarding Employment / Non-Employment of Spouse and House Rent Allowance (HRA)</h3>
+    <p class="ref-line">Ref: Employee ID: ${blank(t.employeeCode)} ; Application ID: ${blank(t.applicationId)}</p>
+    ${empIntro(t,c)}
+    <ol class="items">${hraDeclItems(t,c,true).map(x=>`<li>${x}</li>`).join("")}</ol>
+    ${hraDeclExtra(t)}
+    ${empFooter(t)}
+  `);
+}
+
 const DOC_RENDERERS = {
   COVER: docCOVER, SB: docSB, AB: docAB, E: docE, D: docD,
   HRAD: docHRAD, HRAC: docHRAC, NOLIA: docNOLIA, PAYC: docPAYC,
@@ -2202,7 +2271,7 @@ const DOC_RENDERERS = {
   FLNOLIACPC: docFLNOLIACPC, FLNOLIA: docFLNOLIA, NOLIACERT: docNOLIACERT,
   RESC: docRESC, CHO: docCHO, CPC: docCPC,
   DECLCASE: docDECLCASE, DECLLOAN: docDECLLOAN,
-  EMPCASE: docEMPCASE, EMPLOAN: docEMPLOAN
+  EMPCASE: docEMPCASE, EMPLOAN: docEMPLOAN, DECLHRA: docDECLHRA, EMPHRA: docEMPHRA
 };
 
 const DOC_LIST = [
@@ -2227,6 +2296,8 @@ const DOC_LIST = [
   { id:"DECLCASE",    name:"HOI Declaration — Court Case", sub:"Pending case / litigation / claim (DI instruction)" },
   { id:"DECLLOAN",    name:"HOI Declaration — Loan",    sub:"Outstanding Bank / Teachers' Credit Society loan" },
   { id:"EMPCASE",     name:"Employee Declaration — Court Case", sub:"Incumbent's own declaration (basis for HOI declaration)" },
+  { id:"DECLHRA",     name:"HOI Declaration — HRA",     sub:"Spouse employment & HRA (matches Employee declaration)" },
+  { id:"EMPHRA",      name:"Employee Declaration — HRA", sub:"Own declaration on spouse & HRA (matches HOI declaration)" },
   { id:"EMPLOAN",     name:"Employee Declaration — Loan", sub:"Incumbent's own declaration (basis for HOI declaration)" }
 ];
 
@@ -2482,6 +2553,7 @@ function applyFieldRules(){
   const off = new Set();
   if(!["declCasePending","declPostLitigation","declClaimMatter"].some(k=>current[k]==="YES")) off.add("declCaseDetails");
   if(!["declBankLoan","declSocietyLoan"].some(k=>current[k]==="YES")) off.add("declLoanDetails");
+  if(!["declSpouseHra","declHraExcess"].some(k=>current[k]==="YES")) off.add("declHraDetails");
   if(!isHoi) CHARGE_FIELDS.concat(ADMIN_FIELDS).forEach(f=>off.add(f));
   if(st !== "IN SERVICE") SPOUSE_SERVICE_FIELDS.forEach(f=>off.add(f));
   if(["UN MARRIED","WIDOW","WIDOWER","DIVORCED"].includes(st)) SPOUSE_PERSONAL_FIELDS.forEach(f=>off.add(f));
@@ -2548,7 +2620,7 @@ function renderSummary(){
 
 // Documents printed on the school's pre-printed letterhead paper: top 7.3 cm left blank.
 // NOT in this list (print on plain paper, letterhead printed in the page): SB (Service Book Certificates), EMPCASE, EMPLOAN (Employee Declarations)
-const LETTERHEAD_DOCS = new Set(["HRAC","NOLIACERT","RESC","CHO","CPC","FLP","FLCHO","FLNOLIACPC","FLNOLIA","DECLCASE","DECLLOAN"]);
+const LETTERHEAD_DOCS = new Set(["HRAC","NOLIACERT","RESC","CHO","CPC","FLP","FLCHO","FLNOLIACPC","FLNOLIA","DECLCASE","DECLLOAN","DECLHRA"]);
 function visibleDocs(t){
   const hoi = isApplicantHmOrTic(t);
   const spIn = t.spouseStatus === "IN SERVICE";
