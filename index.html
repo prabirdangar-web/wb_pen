@@ -2589,6 +2589,7 @@ function wireFormInputs(){
       dirty = true; updateSaveStatus();
     });
   });
+  wireDiseAutofill();
 }
 
 function updateSaveStatus(){
@@ -3918,6 +3919,76 @@ function sbLeaveDays(entries){
   });
   return tot;
 }
+
+/* ---- pay details from the SB record (tolerant: matches by field-name pattern) ---- */
+let sbPayNote = [];
+function sbNum(v){
+  if(v===undefined||v===null||typeof v==="object") return "";
+  const n = parseFloat(String(v).replace(/rs\.?|₹|,|\s/gi,""));
+  return (isFinite(n) && n>0) ? String(Math.round(n*100)/100) : "";
+}
+function sbPayFrom(rec){
+  const f = rec.fields || {};
+  const pool = Object.assign({}, rec, f);
+  const norm = k => String(k).toLowerCase().replace(/[^a-z0-9]/g,"");
+  const idx = {};                       // normalised key -> raw value (scalars only)
+  Object.keys(pool).forEach(k=>{ const v=pool[k]; if(v!==null && v!==undefined && typeof v!=="object" && String(v).trim()!=="") idx[norm(k)] = v; });
+  const pick = names => { for(const n of names){ if(idx[n]!==undefined) return {k:n, v:idx[n]}; } return null; };
+  const fuzzy = (must, any, not) => {
+    const k = Object.keys(idx).find(n => must.every(m=>n.includes(m)) && (!any||any.some(a=>n.includes(a))) && !(not||[]).some(x=>n.includes(x)));
+    return k ? {k, v:idx[k]} : null;
+  };
+  const out = {}, found = [];
+  const set = (field, val, label) => { if(val!=="" && val!==undefined){ out[field]=String(val); found.push(label); } };
+
+  // basic pay
+  let lastB = pick(["lastbasicpay","finalbasicpay","basicpayatretirement","retirementbasicpay","lastbasic","finalbasic","caslastbasicpay"]) || fuzzy(["basic"],["final","last"],["but","grade","increment"]);
+  let curB  = pick(["lastbutbasicpay","currentbasicpay","presentbasicpay","currentbasic","presentbasic","basicpay","basic","casbasicpay","casbasic"]) || fuzzy(["basic"],["current","present","but"],["grade"]);
+  // fallback: last row of any pay-history array that carries a basic/pay value
+  if(!lastB && !curB){
+    for(const [k,arr] of Object.entries(pool)){
+      if(!Array.isArray(arr) || !arr.length || typeof arr[arr.length-1]!=="object") continue;
+      const row = arr[arr.length-1] || {};
+      const bk = Object.keys(row).find(x=>/^(newbasic|basicpay|basic|fixedpay|payafter|newpay)$/.test(norm(x)));
+      if(bk && sbNum(row[bk])){ curB = {k:"history:"+k, v:row[bk]}; break; }
+    }
+  }
+  const lb = lastB ? sbNum(lastB.v) : "", cb = curB ? sbNum(curB.v) : "";
+  if(lb){ set("lastBasicPay", lb, "Last Basic Pay"); }
+  if(cb){ set("lastButBasicPay", cb, "Basic Pay (current)"); }
+  if(lb && !cb) set("lastButBasicPay", lb, "Basic Pay (current)");
+  if(cb && !lb) set("lastBasicPay", cb, "Last Basic Pay");
+
+  // grade pay (must be a valid grade pay)
+  const gp = pick(["lastgradepay","gradepay","casgradepay","gp"]) || fuzzy(["grade"],["pay"]);
+  if(gp){ const g = sbNum(gp.v).replace(/\.0+$/,""); if(GRADE_PAYS.some(x=>String(x.gp)===g)) set("lastGradePay", g, "Grade Pay"); }
+
+  // DA %
+  const da = pick(["dapercent","dapct","da","dearnessallowance","casda","darate"]);
+  if(da){ const n = Number(sbNum(da.v)); if(n>0 && n<=100) set("daPercent", String(n), "D.A. %"); }
+
+  // HRA: percent or fixed
+  const hp = pick(["hrapercent","hrapercentvalue","hrarate","hrapct"]);
+  const hf = pick(["hrafixed","hrafixedamount","hraamount"]);
+  const hx = pick(["hra"]);
+  if(hp && sbNum(hp.v)){ out.hraMode="PERCENT"; set("hraPercentValue", sbNum(hp.v), "HRA %"); }
+  else if(hf && sbNum(hf.v)){ out.hraMode="FIXED"; set("hraFixedAmount", sbNum(hf.v), "HRA (fixed)"); }
+  else if(hx && sbNum(hx.v)){
+    const n = Number(sbNum(hx.v));
+    if(n<=30){ out.hraMode="PERCENT"; set("hraPercentValue", String(n), "HRA %"); }
+    else { out.hraMode="FIXED"; set("hraFixedAmount", String(n), "HRA (fixed)"); }
+  }
+
+  // increment dates (YYYY-MM-DD only)
+  const iso = v => /^\d{4}-\d{2}-\d{2}/.test(String(v)) ? String(v).slice(0,10) : "";
+  const li = pick(["lastincrementdate","nextincrementdate","incrementdate","casnextincrementdate"]);
+  if(li && iso(li.v)) set("lastIncrementDate", iso(li.v), "Increment date");
+  const ei = pick(["existingincrementdate","lastincrementdone"]);
+  if(ei && iso(ei.v)) set("existingIncrementDate", iso(ei.v), "Existing increment date");
+
+  return {o:out, found};
+}
+
 function sbToPension(rec){
   const f = rec.fields || {};
   const o = {};
@@ -3959,7 +4030,85 @@ function sbToPension(rec){
   o.medicalLeave = String(L.avg + L.commuted);
   o.halfPayLeave = String(L.half);
   o.extraOrdinaryLeave = String(L.lwp);
+  // pay details
+  const pay = sbPayFrom(rec);
+  Object.assign(o, pay.o);
+  sbPayNote = pay.found;
+  try{ console.info("SB import — fields seen:", Object.keys(f), "| pay fetched:", pay.found); }catch(e){}
   return o;
+}
+
+function sbImportNote(sf){
+  const bits = [];
+  bits.push(sbPayNote.length ? "pay fetched ("+sbPayNote.join(", ")+")" : "no pay fields found in the SB record, enter pay manually");
+  if(sf && sf.n) bits.push("school details filled from "+sf.name+" (matched by "+sf.by+")");
+  return bits.join("; ");
+}
+
+/* =========================================================================
+   SCHOOL AUTO-FILL — same DISE/UDISE code => reuse school details already
+   saved in another record (falls back to school name when no DISE code yet)
+   ========================================================================= */
+const SCHOOL_KEYS = ["schoolName","schoolAddress","schoolSubDiv","schoolRecognisedDate","schoolMail","hoiMobile","currentUserId","treasury","hoiName","hoiStatus","adminStatus","adminName","adminMobile"];
+const SCHOOL_LABELS = {schoolName:"School Name",schoolAddress:"School Address",schoolSubDiv:"Sub-Division",schoolRecognisedDate:"Recognised W.E.F.",schoolMail:"School e-Mail",hoiMobile:"HOI Mobile",currentUserId:"Current User ID",treasury:"Treasury",hoiName:"HOI Name",hoiStatus:"HOI Status",adminStatus:"Administrative Status",adminName:"Administrator Name",adminMobile:"Administrator Mobile"};
+let lastDiseKey = "";
+const normDise = s => String(s||"").replace(/\D/g,"");
+const normSchool = s => String(s||"").toUpperCase().replace(/[^A-Z0-9]/g,"");
+function schoolIsBlank(k, v){
+  if(v===undefined || v===null || String(v).trim()==="") return true;
+  const d = defaultRecord()[k];
+  return d!==undefined && d!=="" && String(v)===String(d);   // untouched form default counts as blank
+}
+function findSchoolDonor(rec){
+  const pool = (allRecords||[]).filter(r=>r.id && r.id!==rec.id);   // newest first
+  const d = normDise(rec.diseCode);
+  if(d.length>=5){
+    const hit = pool.find(r=>normDise(r.diseCode)===d);
+    return hit ? {donor:hit, by:"DISE "+rec.diseCode} : null;
+  }
+  const n = normSchool(rec.schoolName);
+  if(!d && n){
+    const hit = pool.find(r=>normSchool(r.schoolName)===n);
+    return hit ? {donor:hit, by:"school name"} : null;
+  }
+  return null;
+}
+/* fills blank school fields of `rec`; with opts.ask, offers to overwrite differing ones */
+function applySchoolAutofill(rec, opts){
+  const m = findSchoolDonor(rec); if(!m) return null;
+  const blanks = [], diffs = [];
+  SCHOOL_KEYS.forEach(k=>{
+    const dv = m.donor[k]; if(schoolIsBlank(k,dv)) return;
+    if(schoolIsBlank(k,rec[k])) blanks.push(k);
+    else if(String(rec[k]).trim()!==String(dv).trim()) diffs.push(k);
+  });
+  let overwrite = false;
+  if(diffs.length && opts && opts.ask){
+    overwrite = confirm("A saved record with the same school ("+proper(m.donor.schoolName||"")+") has different values for:\n\n• "+diffs.map(k=>SCHOOL_LABELS[k]).join("\n• ")+"\n\nOverwrite these with the saved school details?\n(OK = overwrite, Cancel = keep what you typed)");
+  }
+  const use = blanks.concat(overwrite ? diffs : []);
+  use.forEach(k=>{ rec[k] = m.donor[k]; });
+  if(m.by==="school name" && schoolIsBlank("diseCode", rec.diseCode) && m.donor.diseCode){ rec.diseCode = m.donor.diseCode; use.push("diseCode"); }
+  return {n:use.length, keys:use, by:m.by, name:proper(m.donor.schoolName||"") || "a saved record"};
+}
+function schoolAutofillIntoForm(){
+  const r = applySchoolAutofill(current, {ask:true});
+  if(!r || !r.n) return;
+  r.keys.forEach(k=>{ const el = $('[data-field="'+k+'"]'); if(el) el.value = current[k]||""; });
+  applyFieldRules(); dirty = true; updateSaveStatus();
+  flashStatus("School details filled from "+r.name+" (matched by "+r.by+"): "+r.n+" field"+(r.n>1?"s":"")+".", "ok");
+}
+function wireDiseAutofill(){
+  const de = $('[data-field="diseCode"]'); if(!de) return;
+  const go = minLen => {
+    const d = normDise(de.value);
+    const key = d+"|"+(current.id||"");
+    if(d.length<minLen || key===lastDiseKey) return;
+    lastDiseKey = key;
+    schoolAutofillIntoForm();
+  };
+  de.addEventListener("input", ()=>go(11));     // full 11-digit code typed/pasted
+  de.addEventListener("change", ()=>go(5));     // or on leaving the field
 }
 
 function sbErr(m){ $("#sbErr").textContent = m || ""; }
@@ -3999,15 +4148,17 @@ async function sbImport(key, mode){
     if(dirty && !confirm("You have unsaved changes on the current record. Discard them and open the imported employee?")) return;
     const rec = Object.assign(defaultRecord(), mapped);
     rec.id = newId(); rec.savedAt = new Date().toISOString();
+    const sf = applySchoolAutofill(rec, {ask:false});
     await saveRecord(rec);
     const ids = await loadIndex(); if(!ids.includes(rec.id)){ ids.push(rec.id); await saveIndex(ids); }
     current = rec; originalSnapshot = JSON.stringify(current); dirty = false; activeTab = "form";
     await refreshRecordList(); render();
-    flashStatus("Imported "+proper(rec.staffName)+" from SB. Please check and add pay details.", "ok");
+    flashStatus("Imported "+proper(rec.staffName)+" from SB — "+sbImportNote(sf), sbPayNote.length ? "ok" : "err");
   } else {
     Object.keys(mapped).forEach(k=>{ current[k] = mapped[k]; });
+    const sf = applySchoolAutofill(current, {ask:false});
     dirty = true; activeTab = "form"; render();
-    flashStatus("SB data filled into the current form. Press Save Record to keep it.", "ok");
+    flashStatus("SB data filled into the current form — "+sbImportNote(sf)+". Press Save Record to keep it.", sbPayNote.length ? "ok" : "err");
   }
   $("#sbModal").hidden = true;
 }
