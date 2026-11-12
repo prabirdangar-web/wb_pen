@@ -525,6 +525,7 @@
       <div class="tab" data-tab="form">1. Enter Data</div>
       <div class="tab" data-tab="summary">2. Computed Summary</div>
       <div class="tab" data-tab="docs">3. Documents / Print</div>
+      <div class="tab" data-tab="cert">4. Spouse Non-Employment Certificate</div>
     </div>
     <div class="content" id="content"></div>
     <div class="form-actions" id="formActions" style="display:none;">
@@ -2494,7 +2495,7 @@ async function selectRecord(id){
 
 function render(){
   const onDash = activeTab === "dash";
-  $("#topTitle").textContent = onDash ? "Dashboard — Pension Data Collection" : (current.id ? (proper(current.staffName)||"(unnamed)") + " — " + (current.designation||"") : "New Pensioner Record");
+  $("#topTitle").textContent = onDash ? "Dashboard — Pension Data Collection" : activeTab==="cert" ? "Spouse Non-Employment Certificate (GP / Municipality)" : (current.id ? (proper(current.staffName)||"(unnamed)") + " — " + (current.designation||"") : "New Pensioner Record");
   $("#btnDuplicate").style.display = (!onDash && current.id) ? "inline-block" : "none";
   $("#btnDelete").style.display = (!onDash && current.id) ? "inline-block" : "none";
   $$(".tab").forEach(t => t.classList.toggle("active", t.dataset.tab===activeTab));
@@ -2505,11 +2506,13 @@ function render(){
   if(activeTab==="dash") content.innerHTML = renderDashboard();
   else if(activeTab==="form") content.innerHTML = renderForm();
   else if(activeTab==="summary") content.innerHTML = renderSummary();
+  else if(activeTab==="cert") content.innerHTML = renderCert();
   else content.innerHTML = renderDocs();
 
   if(activeTab==="dash") wireDashboard();
   if(activeTab==="form") wireFormInputs();
   if(activeTab==="docs") wireDocButtons();
+  if(activeTab==="cert") wireCert();
   updateSaveStatus();
 }
 
@@ -4040,6 +4043,142 @@ function fitPreviewToScreen(){
   window.addEventListener("beforeprint", ()=>{ $$(".print-area .page").forEach(pg=>pg.style.zoom=""); });
   window.addEventListener("afterprint", fitPreviewToScreen);
 })();
+
+
+/* =========================================================================
+   TAB 4 — SPOUSE NON-EMPLOYMENT CERTIFICATE (GP / MUNICIPALITY)
+   Independent of the pensioner record. Values are remembered in this browser.
+   ========================================================================= */
+const CERT_KEY = "tfhs_spouse_cert_v1";
+const CERT_DEFAULT = {
+  authType:"GP", authName:"", block:"", district:"Purulia", memo:"", date:"",
+  name:"Mamata Singh Rakshit", rel:"wife of", spouse:"Ranjit Kumar Rakshit",
+  house:"141", village:"Dhadki", po:"Laulara", ps:"Puncha", pdist:"Purulia", pin:"723151", state:"West Bengal",
+  signTitle:"Pradhan"
+};
+let CERT = Object.assign({}, CERT_DEFAULT);
+try{ const sv = JSON.parse(localStorage.getItem(CERT_KEY)||"null"); if(sv) CERT = Object.assign({}, CERT_DEFAULT, sv); }catch(e){}
+function certSave(){ try{ localStorage.setItem(CERT_KEY, JSON.stringify(CERT)); }catch(e){} }
+const CERT_TITLES = {
+  GP:["Pradhan","Upa-Pradhan","Secretary"],
+  MUN:["Chairman","Vice-Chairman","Executive Officer"]
+};
+function certFmtDate(d){ if(!d) return "____/____/______"; const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(d); return m? m[3]+"/"+m[2]+"/"+m[1] : escapeHtml(d); }
+function certBlank(v,w){ return v ? "<strong>"+escapeHtml(v)+"</strong>" : "<span>"+"_".repeat(w||14)+"</span>"; }
+function certPageHtml(){
+  const c = CERT, gp = c.authType==="GP";
+  const authLabel = gp ? "Gram Panchayat" : "Municipality";
+  const head = gp
+    ? (c.authName? escapeHtml(c.authName.toUpperCase()) : "______________") + " GRAM PANCHAYAT"
+    : (c.authName? escapeHtml(c.authName.toUpperCase()) : "______________") + " MUNICIPALITY";
+  const area = gp ? "Block" : "Sub-Division";
+  const addr = [
+    c.house ? "House No. "+escapeHtml(c.house) : "",
+    c.village ? (gp?"Village":"Village/Town")+": "+escapeHtml(c.village) : "",
+    c.po ? "Post Office: "+escapeHtml(c.po) : "",
+    c.ps ? "Police Station: "+escapeHtml(c.ps) : "",
+    c.pdist ? "District: "+escapeHtml(c.pdist) : "",
+    c.pin ? "PIN: "+escapeHtml(c.pin) : "",
+    c.state ? "State: "+escapeHtml(c.state) : ""
+  ].filter(Boolean).join(", ");
+  const rel = c.rel==="daughter of" ? "daughter of" : "wife of";
+  const title = c.signTitle || (CERT_TITLES[c.authType]||[])[0] || "";
+  return `<div class="page" style="font-family:'Times New Roman',serif;font-size:13pt;line-height:1.7;">
+    <div style="text-align:center;line-height:1.35;">
+      <div style="font-size:11pt;font-weight:bold;">GOVERNMENT OF WEST BENGAL</div>
+      <div style="font-size:16pt;font-weight:bold;margin-top:2mm;">${head}</div>
+      <div style="font-size:11pt;margin-top:1mm;">${area}: ${certBlank(c.block,16)} &nbsp;&nbsp; District: ${certBlank(c.district,12)}</div>
+    </div>
+    <hr style="border:0;border-top:1.5px solid #111;margin:4mm 0 5mm;">
+    <div style="display:flex;justify-content:space-between;font-size:11.5pt;">
+      <div>Memo No.: ${certBlank(c.memo,14)}</div><div>Date: ${certFmtDate(c.date)}</div>
+    </div>
+    <div style="text-align:center;margin:14mm 0 8mm;">
+      <div style="font-size:17pt;font-weight:bold;text-decoration:underline;letter-spacing:1px;">CERTIFICATE</div>
+      <div style="font-size:11.5pt;margin-top:1mm;">(Non-Employment Certificate)</div>
+    </div>
+    <p style="margin:0 0 6mm;"><strong>To Whom It May Concern</strong></p>
+    <p style="text-align:justify;text-indent:14mm;margin:0 0 5mm;">This is to certify that <strong>${certBlank(c.name,20).replace(/^<strong>|<\/strong>$/g,'')}</strong>, ${rel} <strong>${escapeHtml(c.spouse)||"__________"}</strong>, is a permanent resident of ${addr||"__________"}, within the jurisdiction of this <strong>${authLabel}</strong>.</p>
+    <p style="text-align:justify;text-indent:14mm;margin:0 0 5mm;">On the basis of local enquiry and the records and knowledge available with this office, she is a <strong>housewife and is not in service</strong>. She has not been engaged in any employment or service under any Government, private, or educational institution, either before or after her marriage.</p>
+    <p style="text-align:justify;text-indent:14mm;margin:0;">This certificate is issued on her request for official purposes.</p>
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:38mm;">
+      <div style="font-size:11.5pt;">Seal</div>
+      <div style="text-align:center;font-size:11.5pt;line-height:1.4;">
+        <div style="border-top:1px solid #111;padding-top:1mm;min-width:70mm;"><strong>Signature</strong></div>
+        <div>${escapeHtml(title)}</div>
+        <div>${escapeHtml(c.authName||"______________")} ${authLabel}</div>
+      </div>
+    </div>
+  </div>`;
+}
+function certField(key,label,type,extra){
+  const v = escapeHtml(CERT[key]||"");
+  return `<div class="field"><label>${label}</label><input type="${type||"text"}" data-cert="${key}" value="${v}" ${extra||""}></div>`;
+}
+function renderCert(){
+  const c = CERT;
+  const titles = (CERT_TITLES[c.authType]||[]).map(t=>`<option ${t===c.signTitle?"selected":""}>${t}</option>`).join("");
+  return `
+  <div class="doc-layout">
+    <div style="width:340px;flex:0 0 340px;">
+      <fieldset><legend>Issuing Authority</legend>
+        <div class="form-grid" style="grid-template-columns:1fr;">
+          <div class="field"><label>Issued by</label>
+            <select data-cert="authType" id="certAuthType">
+              <option value="GP" ${c.authType==="GP"?"selected":""}>Gram Panchayat</option>
+              <option value="MUN" ${c.authType==="MUN"?"selected":""}>Municipality</option>
+            </select></div>
+          ${certField("authName","Name of Gram Panchayat / Municipality")}
+          ${certField("block","Block / Sub-Division")}
+          ${certField("district","District (office)")}
+          ${certField("memo","Memo No.")}
+          ${certField("date","Date","date")}
+          <div class="field"><label>Signatory</label><select data-cert="signTitle" id="certTitle">${titles}</select></div>
+        </div>
+      </fieldset>
+      <fieldset><legend>Woman &amp; Spouse</legend>
+        <div class="form-grid" style="grid-template-columns:1fr;">
+          ${certField("name","Name of woman")}
+          <div class="field"><label>Relation</label>
+            <select data-cert="rel"><option value="wife of" ${c.rel==="wife of"?"selected":""}>Wife of</option><option value="daughter of" ${c.rel==="daughter of"?"selected":""}>Daughter of</option></select></div>
+          ${certField("spouse","Name of husband / father")}
+        </div>
+      </fieldset>
+      <fieldset><legend>Address</legend>
+        <div class="form-grid" style="grid-template-columns:1fr 1fr;">
+          ${certField("house","House No.")}
+          ${certField("village","Village / Town")}
+          ${certField("po","Post Office")}
+          ${certField("ps","Police Station")}
+          ${certField("pdist","District")}
+          ${certField("pin","PIN")}
+          ${certField("state","State")}
+        </div>
+      </fieldset>
+      <button class="btn btn-ghost" id="certReset" style="color:var(--navy);border-color:var(--line);">↺ Reset to Mamata Singh Rakshit</button>
+      <div class="hint" style="margin-top:8px;">The issuing office should confirm the facts by local enquiry before signing. Values are remembered in this browser only.</div>
+    </div>
+    <div style="flex:1;min-width:0;">
+      <div class="preview-toolbar"><button class="btn btn-primary" id="certPrint">🖨 Print Certificate</button></div>
+      <div class="doc-preview-wrap"><div class="print-area" id="certArea">${certPageHtml()}</div></div>
+    </div>
+  </div>`;
+}
+function wireCert(){
+  const area = document.getElementById("certArea");
+  const upd = ()=>{ area.innerHTML = certPageHtml(); };
+  $$("[data-cert]").forEach(el=>{
+    el.addEventListener(el.tagName==="SELECT"?"change":"input", ()=>{
+      const k = el.dataset.cert; CERT[k] = el.value;
+      if(k==="authType"){ CERT.signTitle = CERT_TITLES[CERT.authType][0]; certSave(); render(); return; }
+      certSave(); upd();
+    });
+  });
+  const r = document.getElementById("certReset");
+  if(r) r.addEventListener("click", ()=>{ if(confirm("Reset all certificate fields?")){ CERT = Object.assign({}, CERT_DEFAULT); certSave(); render(); } });
+  const pr = document.getElementById("certPrint");
+  if(pr) pr.addEventListener("click", ()=>window.print());
+}
 
 (async function init(){
   await refreshRecordList();
