@@ -4047,41 +4047,106 @@ function fitPreviewToScreen(){
 
 /* =========================================================================
    TAB 4 — SPOUSE NON-EMPLOYMENT CERTIFICATE (GP / MUNICIPALITY)
-   Independent of the pensioner record. Values are remembered in this browser.
+   Linked to the pensioner case: spouse name, employee name, spouse status and
+   address are fetched from the open / saved record. Everything stays editable.
    ========================================================================= */
-const CERT_KEY = "tfhs_spouse_cert_v1";
+const CERT_KEY = "tfhs_spouse_cert_v2";
 const CERT_DEFAULT = {
   authType:"GP", authName:"", block:"", district:"Purulia", memo:"", date:"",
-  name:"Mamata Singh Rakshit", rel:"wife of", spouse:"Ranjit Kumar Rakshit",
-  house:"141", village:"Dhadki", po:"Laulara", ps:"Puncha", pdist:"Purulia", pin:"723151", state:"West Bengal",
-  signTitle:"Pradhan"
+  name:"Mamata Singh Rakshit", rel:"wife of", spouse:"Ranjit Kumar Rakshit", status:"HOUSEWIFE",
+  house:"141", village:"Dhadki", po:"Laulara", pblock:"", ps:"Puncha", psub:"", pdist:"Purulia", pin:"723151", state:"West Bengal",
+  addrFree:"", signTitle:"Pradhan"
 };
 let CERT = Object.assign({}, CERT_DEFAULT);
 try{ const sv = JSON.parse(localStorage.getItem(CERT_KEY)||"null"); if(sv) CERT = Object.assign({}, CERT_DEFAULT, sv); }catch(e){}
 function certSave(){ try{ localStorage.setItem(CERT_KEY, JSON.stringify(CERT)); }catch(e){} }
-const CERT_TITLES = {
-  GP:["Pradhan","Upa-Pradhan","Secretary"],
-  MUN:["Chairman","Vice-Chairman","Executive Officer"]
-};
+let CERT_LINK = "auto";      // "auto" | "manual" | "__current" | <record id>
+let CERT_SIG = "";           // signature of the record data last fetched
+let CERT_LINK_NOTE = "";
+const CERT_TITLES = { GP:["Pradhan","Upa-Pradhan","Secretary"], MUN:["Chairman","Vice-Chairman","Executive Officer"] };
+
+function certRec(link){ return link==="__current" ? current : (allRecords||[]).find(r=>r.id===link); }
+function certSig(r){ return [r.id,r.staffName,r.gender,r.spouseName,r.spouseRelation,r.spouseStatus,r.selfSpouseAddress].join("|"); }
+
+/* split "House No. : 141 Village & Post Office : X , Block : Y ..." into parts */
+function certParseAddr(raw){
+  const out = {}; if(!raw) return out;
+  let t = String(raw);
+  const st = /\[([^\]]+)\]\s*$/.exec(t); if(st){ out.state = proper(st[1].trim()); t = t.replace(/\[[^\]]+\]\s*$/,""); }
+  const re = /(House\s*No\.?|Village\s*&\s*Post\s*Office|Village\s*\/\s*Town|Village|Vill\.?|Post\s*Office|P\.?\s?O\.?|Block|Police\s*Station|P\.?\s?S\.?|Sub[\s-]*Division|District|Dist\.?|PIN(?:\s*Code)?)\s*[:\-]/ig;
+  const hits = [...t.matchAll(re)];
+  hits.forEach((m,i)=>{
+    const v = t.slice(m.index+m[0].length, i+1<hits.length ? hits[i+1].index : t.length).replace(/^[\s,;]+|[\s,;.]+$/g,"").trim();
+    if(!v) return;
+    const k = m[1].toLowerCase().replace(/[\s.]/g,"");
+    if(k.startsWith("house")) out.house = v;
+    else if(k.includes("village")&&k.includes("post")){ out.village = v; out.po = v; }
+    else if(k.startsWith("village")||k==="vill") out.village = v;
+    else if(k.startsWith("postoffice")||k==="po") out.po = v;
+    else if(k==="block") out.pblock = v;
+    else if(k.startsWith("police")||k==="ps") out.ps = v;
+    else if(k.startsWith("sub")) out.psub = v;
+    else if(k.startsWith("dist")) out.pdist = v;
+    else if(k.startsWith("pin")) out.pin = (v.match(/\d{6}/)||[v])[0];
+  });
+  return out;
+}
+
+/* fill the certificate from a pensioner record */
+function certApply(rec){
+  const female = String(rec.gender).toUpperCase()==="FEMALE";
+  const rel = (String(rec.spouseRelation).toUpperCase()==="HUSBAND" || female) ? "husband of" : "wife of";
+  const sp = String(rec.spouseStatus||"").toUpperCase();
+  CERT.name = proper(rec.spouseName||"");
+  CERT.spouse = proper(rec.staffName||"");
+  CERT.rel = rel;
+  CERT.status = sp==="NOT IN SERVICE" ? "NOT IN SERVICE" : "HOUSEWIFE";
+  ["house","village","po","pblock","ps","psub","pdist","pin","state","addrFree"].forEach(k=>CERT[k]="");
+  const a = certParseAddr(rec.selfSpouseAddress);
+  const found = Object.keys(a).filter(k=>k!=="state").length;
+  if(found>=2){
+    ["house","village","po","pblock","ps","psub","pdist","pin"].forEach(k=>{ if(a[k]) CERT[k] = k==="pin"||k==="house" ? a[k] : proper(a[k]); });
+    CERT.state = a.state || "West Bengal";
+    if(CERT.pdist) CERT.district = CERT.pdist;
+    if(!CERT.block && CERT.pblock) CERT.block = CERT.pblock;
+  } else if(rec.selfSpouseAddress){
+    CERT.addrFree = proper(rec.selfSpouseAddress);
+  }
+  CERT_SIG = certSig(rec);
+  CERT_LINK_NOTE = "";
+  if(!rec.spouseName) CERT_LINK_NOTE = "This record has no spouse name yet — fill it in the Enter Data tab or here.";
+  else if(sp==="IN SERVICE") CERT_LINK_NOTE = "⚠ This record shows the spouse is IN SERVICE. This certificate is only for a spouse who is not employed.";
+  else if(["UN MARRIED","WIDOW","WIDOWER","DIVORCED","SEPARATED"].includes(sp)) CERT_LINK_NOTE = "⚠ Spouse status in the record is “"+sp+"”. Check that this certificate is needed.";
+  else if(!rec.selfSpouseAddress) CERT_LINK_NOTE = "No address in the record — type it below.";
+  certSave();
+}
+
 function certFmtDate(d){ if(!d) return "____/____/______"; const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(d); return m? m[3]+"/"+m[2]+"/"+m[1] : escapeHtml(d); }
-function certBlank(v,w){ return v ? "<strong>"+escapeHtml(v)+"</strong>" : "<span>"+"_".repeat(w||14)+"</span>"; }
-function certPageHtml(){
-  const c = CERT, gp = c.authType==="GP";
-  const authLabel = gp ? "Gram Panchayat" : "Municipality";
-  const head = gp
-    ? (c.authName? escapeHtml(c.authName.toUpperCase()) : "______________") + " GRAM PANCHAYAT"
-    : (c.authName? escapeHtml(c.authName.toUpperCase()) : "______________") + " MUNICIPALITY";
-  const area = gp ? "Block" : "Sub-Division";
-  const addr = [
+function certBlank(v,w){ return v ? escapeHtml(v) : "_".repeat(w||14); }
+function certAddress(c, gp){
+  const parts = [
     c.house ? "House No. "+escapeHtml(c.house) : "",
     c.village ? (gp?"Village":"Village/Town")+": "+escapeHtml(c.village) : "",
     c.po ? "Post Office: "+escapeHtml(c.po) : "",
+    c.pblock ? "Block: "+escapeHtml(c.pblock) : "",
     c.ps ? "Police Station: "+escapeHtml(c.ps) : "",
+    c.psub ? "Sub-Division: "+escapeHtml(c.psub) : "",
     c.pdist ? "District: "+escapeHtml(c.pdist) : "",
     c.pin ? "PIN: "+escapeHtml(c.pin) : "",
     c.state ? "State: "+escapeHtml(c.state) : ""
-  ].filter(Boolean).join(", ");
-  const rel = c.rel==="daughter of" ? "daughter of" : "wife of";
+  ].filter(Boolean);
+  if(parts.length) return parts.join(", ");
+  return c.addrFree ? escapeHtml(c.addrFree) : "__________";
+}
+function certPageHtml(){
+  const c = CERT, gp = c.authType==="GP";
+  const authLabel = gp ? "Gram Panchayat" : "Municipality";
+  const head = (c.authName? escapeHtml(c.authName.toUpperCase()) : "______________") + (gp ? " GRAM PANCHAYAT" : " MUNICIPALITY");
+  const area = gp ? "Block" : "Sub-Division";
+  const male = /^(husband|son)/.test(c.rel);
+  const pr = male ? "he" : "she", Pr = male ? "He" : "She", his = male ? "his" : "her", him = male ? "him" : "her";
+  const housewife = !male && c.status==="HOUSEWIFE";
+  const statusTxt = housewife ? "a <strong>housewife and is not in service</strong>" : "<strong>not in service</strong>";
   const title = c.signTitle || (CERT_TITLES[c.authType]||[])[0] || "";
   return `<div class="page" style="font-family:'Times New Roman',serif;font-size:13pt;line-height:1.7;">
     <div style="text-align:center;line-height:1.35;">
@@ -4098,65 +4163,98 @@ function certPageHtml(){
       <div style="font-size:11.5pt;margin-top:1mm;">(Non-Employment Certificate)</div>
     </div>
     <p style="margin:0 0 6mm;"><strong>To Whom It May Concern</strong></p>
-    <p style="text-align:justify;text-indent:14mm;margin:0 0 5mm;">This is to certify that <strong>${certBlank(c.name,20).replace(/^<strong>|<\/strong>$/g,'')}</strong>, ${rel} <strong>${escapeHtml(c.spouse)||"__________"}</strong>, is a permanent resident of ${addr||"__________"}, within the jurisdiction of this <strong>${authLabel}</strong>.</p>
-    <p style="text-align:justify;text-indent:14mm;margin:0 0 5mm;">On the basis of local enquiry and the records and knowledge available with this office, she is a <strong>housewife and is not in service</strong>. She has not been engaged in any employment or service under any Government, private, or educational institution, either before or after her marriage.</p>
-    <p style="text-align:justify;text-indent:14mm;margin:0;">This certificate is issued on her request for official purposes.</p>
+    <p style="text-align:justify;text-indent:14mm;margin:0 0 5mm;">This is to certify that <strong>${c.name?escapeHtml(c.name):"____________________"}</strong>, ${escapeHtml(c.rel)} <strong>${c.spouse?escapeHtml(c.spouse):"____________________"}</strong>, is a permanent resident of ${certAddress(c,gp)}, within the jurisdiction of this <strong>${authLabel}</strong>.</p>
+    <p style="text-align:justify;text-indent:14mm;margin:0 0 5mm;">On the basis of local enquiry and the records and knowledge available with this office, ${pr} is ${statusTxt}. ${Pr} has not been engaged in any employment or service under any Government, private, or educational institution, either before or after ${his} marriage.</p>
+    <p style="text-align:justify;text-indent:14mm;margin:0;">This certificate is issued on ${his} request for official purposes.</p>
     <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:38mm;">
       <div style="font-size:11.5pt;">Seal</div>
       <div style="text-align:center;font-size:11.5pt;line-height:1.4;">
         <div style="border-top:1px solid #111;padding-top:1mm;min-width:70mm;"><strong>Signature</strong></div>
         <div>${escapeHtml(title)}</div>
-        <div>${escapeHtml(c.authName||"______________")} ${authLabel}</div>
+        <div>${c.authName?escapeHtml(c.authName):"______________"} ${authLabel}</div>
       </div>
     </div>
   </div>`;
 }
-function certField(key,label,type,extra){
-  const v = escapeHtml(CERT[key]||"");
-  return `<div class="field"><label>${label}</label><input type="${type||"text"}" data-cert="${key}" value="${v}" ${extra||""}></div>`;
+function certField(key,label,type){
+  return `<div class="field"><label>${label}</label><input type="${type||"text"}" data-cert="${key}" value="${escapeHtml(CERT[key]||"")}"></div>`;
+}
+function certLinkOptions(){
+  let o = `<option value="manual" ${CERT_LINK==="manual"?"selected":""}>✎ Manual entry (no case)</option>`;
+  if(current && current.staffName)
+    o += `<option value="__current" ${CERT_LINK==="__current"?"selected":""}>● Open record: ${escapeHtml(proper(current.staffName))}</option>`;
+  (allRecords||[]).filter(r=>r.id && r.id!==current.id).forEach(r=>{
+    const flag = r.spouseName ? "" : " (no spouse data)";
+    o += `<option value="${escapeHtml(r.id)}" ${CERT_LINK===r.id?"selected":""}>${escapeHtml(proper(r.staffName)||"(unnamed)")} — ${escapeHtml(r.designation||"")}${flag}</option>`;
+  });
+  return o;
 }
 function renderCert(){
+  /* auto-link to the open record on first visit; re-fetch if that record's data changed */
+  if(CERT_LINK==="auto"){
+    if(current && current.staffName && current.spouseName){ CERT_LINK = "__current"; certApply(current); }
+    else CERT_LINK = "manual";
+  } else if(CERT_LINK!=="manual"){
+    const rec = certRec(CERT_LINK);
+    if(!rec) CERT_LINK = "manual";
+    else if(certSig(rec)!==CERT_SIG) certApply(rec);
+  }
   const c = CERT;
   const titles = (CERT_TITLES[c.authType]||[]).map(t=>`<option ${t===c.signTitle?"selected":""}>${t}</option>`).join("");
+  const linkNote = CERT_LINK==="manual"
+    ? "Pick a case to auto-fetch the spouse, employee and address."
+    : (CERT_LINK_NOTE || "Fetched from the case. You can still edit any field below.");
   return `
   <div class="doc-layout">
     <div style="width:340px;flex:0 0 340px;">
+      <fieldset><legend>Case (auto-fetch)</legend>
+        <div class="field"><label>Pensioner case / record</label>
+          <select id="certLink">${certLinkOptions()}</select></div>
+        <div class="hint" style="${/^⚠/.test(CERT_LINK_NOTE)&&CERT_LINK!=="manual"?"color:var(--danger);font-weight:600;":""}margin-top:6px;">${escapeHtml(linkNote)}</div>
+        <button class="btn btn-ghost" id="certRefetch" style="margin-top:8px;color:var(--navy);border-color:var(--line);" ${CERT_LINK==="manual"?"disabled":""}>↻ Re-fetch from case</button>
+      </fieldset>
       <fieldset><legend>Issuing Authority</legend>
         <div class="form-grid" style="grid-template-columns:1fr;">
           <div class="field"><label>Issued by</label>
-            <select data-cert="authType" id="certAuthType">
+            <select data-cert="authType">
               <option value="GP" ${c.authType==="GP"?"selected":""}>Gram Panchayat</option>
               <option value="MUN" ${c.authType==="MUN"?"selected":""}>Municipality</option>
             </select></div>
           ${certField("authName","Name of Gram Panchayat / Municipality")}
-          ${certField("block","Block / Sub-Division")}
+          ${certField("block","Block / Sub-Division (office)")}
           ${certField("district","District (office)")}
           ${certField("memo","Memo No.")}
           ${certField("date","Date","date")}
-          <div class="field"><label>Signatory</label><select data-cert="signTitle" id="certTitle">${titles}</select></div>
+          <div class="field"><label>Signatory</label><select data-cert="signTitle">${titles}</select></div>
         </div>
       </fieldset>
-      <fieldset><legend>Woman &amp; Spouse</legend>
+      <fieldset><legend>Person &amp; Relative</legend>
         <div class="form-grid" style="grid-template-columns:1fr;">
-          ${certField("name","Name of woman")}
+          ${certField("name","Name of person certified")}
           <div class="field"><label>Relation</label>
-            <select data-cert="rel"><option value="wife of" ${c.rel==="wife of"?"selected":""}>Wife of</option><option value="daughter of" ${c.rel==="daughter of"?"selected":""}>Daughter of</option></select></div>
-          ${certField("spouse","Name of husband / father")}
+            <select data-cert="rel">${["wife of","husband of","daughter of","son of"].map(x=>`<option value="${x}" ${c.rel===x?"selected":""}>${x.replace(/^./,m=>m.toUpperCase())}</option>`).join("")}</select></div>
+          ${certField("spouse","Name of spouse / father (employee)")}
+          <div class="field"><label>Status</label>
+            <select data-cert="status"><option value="HOUSEWIFE" ${c.status==="HOUSEWIFE"?"selected":""}>Housewife (not in service)</option><option value="NOT IN SERVICE" ${c.status==="NOT IN SERVICE"?"selected":""}>Not in service</option></select></div>
         </div>
       </fieldset>
-      <fieldset><legend>Address</legend>
+      <fieldset><legend>Residential Address</legend>
         <div class="form-grid" style="grid-template-columns:1fr 1fr;">
           ${certField("house","House No.")}
           ${certField("village","Village / Town")}
           ${certField("po","Post Office")}
+          ${certField("pblock","Block")}
           ${certField("ps","Police Station")}
+          ${certField("psub","Sub-Division")}
           ${certField("pdist","District")}
           ${certField("pin","PIN")}
           ${certField("state","State")}
         </div>
+        <div class="field" style="margin-top:10px;"><label>Full address (used only if the parts above are empty)</label>
+          <textarea data-cert="addrFree">${escapeHtml(c.addrFree||"")}</textarea></div>
       </fieldset>
-      <button class="btn btn-ghost" id="certReset" style="color:var(--navy);border-color:var(--line);">↺ Reset to Mamata Singh Rakshit</button>
-      <div class="hint" style="margin-top:8px;">The issuing office should confirm the facts by local enquiry before signing. Values are remembered in this browser only.</div>
+      <button class="btn btn-ghost" id="certReset" style="color:var(--navy);border-color:var(--line);">↺ Clear all fields</button>
+      <div class="hint" style="margin-top:8px;">The issuing office should confirm the facts by local enquiry before signing.</div>
     </div>
     <div style="flex:1;min-width:0;">
       <div class="preview-toolbar"><button class="btn btn-primary" id="certPrint">🖨 Print Certificate</button></div>
@@ -4174,8 +4272,22 @@ function wireCert(){
       certSave(); upd();
     });
   });
+  const lk = document.getElementById("certLink");
+  if(lk) lk.addEventListener("change", ()=>{
+    CERT_LINK = lk.value;
+    if(CERT_LINK==="manual"){ CERT_LINK_NOTE = ""; render(); return; }
+    const rec = certRec(CERT_LINK); if(rec) certApply(rec);
+    render();
+  });
+  const rf = document.getElementById("certRefetch");
+  if(rf) rf.addEventListener("click", ()=>{ const rec = certRec(CERT_LINK); if(rec){ certApply(rec); render(); } });
   const r = document.getElementById("certReset");
-  if(r) r.addEventListener("click", ()=>{ if(confirm("Reset all certificate fields?")){ CERT = Object.assign({}, CERT_DEFAULT); certSave(); render(); } });
+  if(r) r.addEventListener("click", ()=>{
+    if(!confirm("Clear all certificate fields?")) return;
+    const keep = {authType:CERT.authType, signTitle:CERT.signTitle, authName:CERT.authName, block:CERT.block, district:CERT.district};
+    CERT = Object.assign({}, CERT_DEFAULT, {name:"",spouse:"",house:"",village:"",po:"",ps:"",pdist:"",pin:"",state:"West Bengal",memo:"",date:""}, keep);
+    CERT_LINK = "manual"; CERT_LINK_NOTE = ""; certSave(); render();
+  });
   const pr = document.getElementById("certPrint");
   if(pr) pr.addEventListener("click", ()=>window.print());
 }
