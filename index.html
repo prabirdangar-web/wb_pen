@@ -664,9 +664,21 @@
       <input class="search-box" id="sbSearch" placeholder="Search employee name..." style="flex:1;background:#fff;color:var(--ink);border-color:var(--line);">
       <button class="btn btn-ghost dk" id="btnSbRefresh">↻ Refresh</button>
     </div>
+    <details id="sbMapBox" style="margin:8px 0;border:1px solid var(--line);border-radius:7px;padding:8px 10px;background:#fafbfc;">
+      <summary style="cursor:pointer;font-weight:700;color:var(--navy);font-size:12.5px;">⚙ Pay field mapping — choose which SB field fills each pay box <span id="sbMapState" style="font-weight:400;color:var(--muted);"></span></summary>
+      <div style="margin-top:8px;font-size:11.5px;color:var(--muted);">Pick a sample employee, then choose the SB field for each pay box. Saved in this browser and used on every import (fields left on “auto-detect” are guessed by name).</div>
+      <div style="margin:8px 0;"><label>Sample employee (to list SB fields)</label><select id="sbMapSample" style="max-width:360px;"></select></div>
+      <div id="sbMapGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px 14px;"></div>
+      <div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <button class="btn btn-primary" id="sbMapSave" type="button">Save mapping</button>
+        <button class="btn btn-ghost dk" id="sbMapClear" type="button">Clear mapping</button>
+        <button class="btn btn-ghost dk" id="sbMapDump" type="button">Show all SB fields of sample</button>
+      </div>
+      <pre id="sbMapDumpOut" hidden style="max-height:220px;overflow:auto;background:#fff;border:1px solid var(--line);border-radius:6px;padding:8px;font-size:11px;margin-top:8px;white-space:pre-wrap;"></pre>
+    </details>
     <div class="inbox-list" id="sbList"><div style="padding:14px;color:var(--muted);">Loading…</div></div>
     <div class="modal-err" id="sbErr"></div>
-    <p class="sb-note"><b>New record</b> saves a fresh pensioner and opens it. <b>Fill current form</b> copies only the non-empty SB values into the record now on screen (nothing is saved until you press Save Record). Pay figures (Last Basic Pay, D.A., HRA, PPO etc.) are not stored by SB — enter them in <i>Pay &amp; Pension Inputs</i>.</p>
+    <p class="sb-note"><b>New record</b> saves a fresh pensioner and opens it. <b>Fill current form</b> copies only the non-empty SB values into the record now on screen (nothing is saved until you press Save Record). Pay figures are copied using the <b>Pay field mapping</b> above (or auto-detected by field name). Anything SB does not store must be entered in <i>Pay &amp; Pension Inputs</i>.</p>
   </div>
 </div>
 
@@ -3920,6 +3932,83 @@ function sbLeaveDays(entries){
   return tot;
 }
 
+
+/* ---- Pay field mapping (user picks the SB field for each pay box) ---- */
+const SB_MAP_KEY = "tfhs_sb_paymap_v1";
+const SB_PAY_TARGETS = [
+  ["lastBasicPay","Last (Final) Basic Pay","num"],
+  ["lastButBasicPay","Basic Pay Before Last Increment","num"],
+  ["existingIncrementDate","Existing Increment Date","date"],
+  ["existingIncrementAmount","Basic Pay As On That Date","num"],
+  ["lastIncrementDate","Date of Last/Next 1st-July Increment","date"],
+  ["daPercent","D.A. @ (%)","num"],
+  ["hraPercentValue","HRA Rate (%) → sets HRA Type PERCENT","num"],
+  ["hraFixedAmount","Fixed HRA Amount → sets HRA Type FIXED","num"],
+  ["lastGradePay","Last Grade Pay","num"]
+];
+let SB_MAP = {};
+try{ SB_MAP = JSON.parse(localStorage.getItem(SB_MAP_KEY)||"{}") || {}; }catch(e){ SB_MAP = {}; }
+function sbGetPath(obj, path){
+  let v = obj;
+  for(const tok of String(path).split(".")){
+    if(v===null || v===undefined) return undefined;
+    if(tok.endsWith("[last]")){ v = v[tok.slice(0,-6)]; v = Array.isArray(v) ? v[v.length-1] : undefined; }
+    else v = v[tok];
+  }
+  return v;
+}
+function sbFlatten(obj, prefix, depth, out){
+  out = out || []; depth = depth||0;
+  if(out.length>600 || depth>5 || obj===null || typeof obj!=="object") return out;
+  Object.keys(obj).forEach(k=>{
+    const v = obj[k], path = prefix ? prefix+"."+k : k;
+    if(Array.isArray(v)){
+      if(v.length && typeof v[v.length-1]==="object" && v[v.length-1]!==null) sbFlatten(v[v.length-1], path+"[last]", depth+1, out);
+    } else if(v!==null && typeof v==="object") sbFlatten(v, path, depth+1, out);
+    else if(v!==undefined && String(v).trim()!=="") out.push({path, val:v});
+  });
+  return out;
+}
+function sbMapSampleRec(){
+  const k = $("#sbMapSample") ? $("#sbMapSample").value : "";
+  return sbRecords[k] || sbRecords[Object.keys(sbRecords)[0]] || null;
+}
+function renderSbMap(){
+  const sel = $("#sbMapSample"); if(!sel) return;
+  const keys = Object.keys(sbRecords).sort((a,b)=>a.localeCompare(b));
+  const keep = sel.value;
+  sel.innerHTML = keys.map(k=>`<option value="${escapeHtml(k)}">${escapeHtml(proper((sbRecords[k]||{}).staffName||k))}</option>`).join("");
+  if(keep && keys.includes(keep)) sel.value = keep;
+  const rec = sbMapSampleRec();
+  const flat = rec ? sbFlatten(rec,"",0,[]) : [];
+  const trunc = v => { v=String(v); return v.length>28 ? v.slice(0,28)+"…" : v; };
+  $("#sbMapGrid").innerHTML = SB_PAY_TARGETS.map(([id,label])=>{
+    const cur = SB_MAP[id] || "";
+    const opts = [`<option value="">— auto-detect —</option>`]
+      .concat(flat.map(x=>`<option value="${escapeHtml(x.path)}" ${x.path===cur?"selected":""}>${escapeHtml(x.path)} = ${escapeHtml(trunc(x.val))}</option>`));
+    if(cur && !flat.some(x=>x.path===cur)) opts.push(`<option value="${escapeHtml(cur)}" selected>${escapeHtml(cur)} (saved)</option>`);
+    return `<div><label>${label}</label><select data-sbmap="${id}">${opts.join("")}</select></div>`;
+  }).join("");
+  const n = Object.keys(SB_MAP).filter(k=>SB_MAP[k]).length;
+  $("#sbMapState").textContent = n ? "— "+n+" field"+(n>1?"s":"")+" mapped" : "— not set";
+}
+function sbApplyMap(rec){
+  const out = {}, found = [];
+  const iso = v => /^\d{4}-\d{2}-\d{2}/.test(String(v)) ? String(v).slice(0,10) : "";
+  SB_PAY_TARGETS.forEach(([id,label,type])=>{
+    const path = SB_MAP[id]; if(!path) return;
+    const raw = sbGetPath(rec, path);
+    if(raw===undefined || raw===null || typeof raw==="object") return;
+    let v = type==="date" ? iso(raw) : sbNum(raw);
+    if(!v) return;
+    if(id==="lastGradePay"){ v = v.replace(/\.0+$/,""); if(!GRADE_PAYS.some(g=>String(g.gp)===v)) return; }
+    out[id] = v; found.push(label);
+    if(id==="hraPercentValue") out.hraMode = "PERCENT";
+    if(id==="hraFixedAmount") out.hraMode = "FIXED";
+  });
+  return {o:out, found};
+}
+
 /* ---- pay details from the SB record (tolerant: matches by field-name pattern) ---- */
 let sbPayNote = [];
 function sbNum(v){
@@ -4032,6 +4121,9 @@ function sbToPension(rec){
   o.extraOrdinaryLeave = String(L.lwp);
   // pay details
   const pay = sbPayFrom(rec);
+  const mp = sbApplyMap(rec);
+  Object.assign(pay.o, mp.o);                 // user-mapped fields win over name-guessing
+  mp.found.forEach(x=>{ if(!pay.found.includes(x)) pay.found.push(x); });
   Object.assign(o, pay.o);
   sbPayNote = pay.found;
   try{ console.info("SB import — fields seen:", Object.keys(f), "| pay fetched:", pay.found); }catch(e){}
@@ -4119,6 +4211,7 @@ async function loadSbRecords(){
     const snap = await getFs().collection("tfhs").doc("ropaPayFixation").get();
     sbRecords = (snap.exists && snap.data().records && typeof snap.data().records==="object") ? snap.data().records : {};
     renderSbList();
+    renderSbMap();
   }catch(e){
     console.warn("SB load failed", e);
     $("#sbList").innerHTML = "";
@@ -4170,6 +4263,22 @@ $("#btnSbClose").addEventListener("click", ()=>{ $("#sbModal").hidden = true; })
 $("#sbModal").addEventListener("click", e=>{ if(e.target.id==="sbModal") $("#sbModal").hidden = true; });
 $("#btnSbRefresh").addEventListener("click", loadSbRecords);
 $("#sbSearch").addEventListener("input", renderSbList);
+$("#sbMapSample").addEventListener("change", renderSbMap);
+$("#sbMapSave").addEventListener("click", ()=>{
+  const m = {}; $$("[data-sbmap]").forEach(el=>{ if(el.value) m[el.dataset.sbmap] = el.value; });
+  SB_MAP = m; try{ localStorage.setItem(SB_MAP_KEY, JSON.stringify(m)); }catch(e){}
+  renderSbMap(); sbErr(""); flashStatus("Pay field mapping saved — it will be used on the next SB import.", "ok");
+});
+$("#sbMapClear").addEventListener("click", ()=>{
+  SB_MAP = {}; try{ localStorage.removeItem(SB_MAP_KEY); }catch(e){}
+  renderSbMap(); flashStatus("Pay field mapping cleared.", "ok");
+});
+$("#sbMapDump").addEventListener("click", ()=>{
+  const out = $("#sbMapDumpOut"), rec = sbMapSampleRec();
+  if(!rec){ out.hidden=false; out.textContent="No SB record loaded."; return; }
+  out.hidden = !out.hidden;
+  out.textContent = sbFlatten(rec,"",0,[]).map(x=>x.path+" = "+x.val).join("\n") || "(no scalar fields)";
+});
 
 /* =========================================================================
    MOBILE: scale the A4 paper preview to fit the screen width
